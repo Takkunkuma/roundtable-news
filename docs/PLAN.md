@@ -27,13 +27,13 @@ A web app that finds stories covered by many outlets and turns each into a plain
 3. **Stakeholder card** — what that group wants and worries about; expand for why they see it this way, the factual claims they make, and the cited sources.
 4. **Stakeholder chat** — ask a group a question. Answers come only from the story's sources, with citations, and say plainly when the sources don't cover something.
 
-Behind the page, a pipeline ingests public news feeds, groups articles about the same event, keeps stories covered by ≥ 5 outlets of ≥ 2 kinds, and drafts the story page for an editor to review and publish.
+Behind the page, a daily pipeline ingests public news feeds, groups articles about the same event, keeps stories covered by ≥ 5 outlets of ≥ 2 kinds, and downloads those articles' full text. Two AI agents then draft the story page (one writes the plain-language story, one analyzes stakeholders) for an editor to review and publish.
 
 ## 4. Product rules
 (Full list and enforcement details in `BUILD_PLAN.md` §1.)
 - Stakeholders are groups, never real named individuals; chat never impersonates a real person.
 - Everything is sourced; no source, no claim.
-- Chat is grounded in stored source excerpts only.
+- Chat is grounded in the story's stored source articles only.
 - A group's views are kept separate from its factual claims.
 - No left/center/right framing, and no debate between stakeholders.
 - The chat is clearly labeled as an AI summary of what the group has said.
@@ -64,7 +64,7 @@ Built in five milestones (details and "done when" checks in `BUILD_PLAN.md` §8)
 - Simplified views can turn into caricatures.
 - Stakeholder chat misrepresents a group or goes beyond its sources.
 - AI accuracy and low trust in AI news (≈20% trust chatbot news, Reuters Institute 2026).
-- Publisher access and copyright: some sites block fetching or are paywalled; we store short excerpts only and link back.
+- Publisher access and copyright: some sites block fetching or are paywalled; full text is kept privately for the AI agents (never shown, purged after 30 days unless a published story cites it); the site shows short quotes and links back.
 - Paid market for balanced news is a niche (Ground News est. <$5M revenue; Tangle ≈$4.5M/yr).
 
 ## 8. Timeline

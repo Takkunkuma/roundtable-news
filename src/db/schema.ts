@@ -51,8 +51,10 @@ export const articles = pgTable(
     snippet: text(),
     publishedAt: timestamp({ withTimezone: true }),
     fetchedAt: timestamp({ withTimezone: true }),
-    // Short excerpt for grounding only (≤ ~4,000 chars). Never republished.
-    textExcerpt: text(),
+    // Full extracted text, private: used by the agents, quote checks, and chat. Never shown on
+    // the site. Purged after 30 days unless a published story cites the article (BUILD_PLAN §4.3).
+    fullText: text(),
+    textFetchedAt: timestamp({ withTimezone: true }),
     fetchStatus: fetchStatus().notNull().default("pending"),
   },
   (t) => [index("articles_published_at_idx").on(t.publishedAt)],

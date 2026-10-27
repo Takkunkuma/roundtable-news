@@ -21,7 +21,7 @@ These matter more than any feature. Encode them in prompts, validation code, and
 
 1. **Stakeholders are groups, never real named individuals.** "Landscaping business owners," not "Mayor Jane Smith." Chat characters must never impersonate a real person.
 2. **Everything is sourced.** Every stakeholder field and every chat answer cites one or more source articles. No source → the claim doesn't appear.
-3. **Grounded chat.** A stakeholder can only answer from that story's stored source excerpts. If the sources don't cover a question, the character says so plainly and does not guess.
+3. **Grounded chat.** A stakeholder can only answer from that story's stored source articles. If the sources don't cover a question, the character says so plainly and does not guess.
 4. **Views vs. facts.** Keep a group's interests and feelings separate from factual claims. Factual claims are listed separately and labeled as "claimed by this group."
 5. **No left/center/right framing.** Perspectives are organized by who is affected, not by political camp. Politicians or parties may appear as one stakeholder among several.
 6. **No debate mode.** Stakeholders do not argue with each other in the MVP.
@@ -55,7 +55,8 @@ sources            -- outlets we ingest from
 
 articles           -- individual items from feeds
   id, source_id, url (unique), title, snippet, published_at, fetched_at,
-  text_excerpt (nullable, max ~4,000 chars), fetch_status (pending|ok|blocked|failed)
+  full_text (nullable; private, never displayed; see §4.3 retention), text_fetched_at,
+  fetch_status (pending|ok|blocked|failed)
 
 story_candidates   -- clusters of articles about the same event
   id, created_at, label, article_ids[], distinct_source_count, distinct_kinds_count, score, status (new|selected|rejected)
@@ -83,13 +84,20 @@ feedback           -- "Missing a perspective?" submissions
 
 ## 4. Pipeline: finding multi-source stories
 
-### 4.1 Ingest (Cron, once every 24 hours)
-- Seed `sources` with **25–40 public RSS feeds** across different kinds: national outlets, local outlets, international outlets, wire services, trade/industry press, and official sources (government and agency press releases). Put the list in `data/sources.json` so it's easy to edit. Mix outlets across the political spectrum and across countries, but do not store or display a political label.
-- Fetch each feed, upsert new items into `articles` (title, URL, snippet, date). Do **not** fetch full article text at this stage.
-- Process feeds in small batches so each serverless invocation stays within Vercel's function time limit. Since the cron fires only once a day, the daily run should chain requests (each batch triggers the next) or use a few staggered daily cron routes, rather than relying on later runs to finish the backlog.
-- Run clustering (§4.2) right after the daily ingest finishes.
+### 4.0 Daily schedule
+The pipeline runs once a day as three Vercel Cron Jobs, one hour apart (Hobby plan: daily crons only, ±59 min precision, 300 s max per function). Each job is its own route under `/api/cron/*` and checks `CRON_SECRET`. To run a job on demand for testing, use `vercel crons` or call the route locally; there is no admin button for this.
 
-### 4.2 Cluster (after ingest)
+| Time (UTC) | Job | Section |
+|---|---|---|
+| 06:00 | Ingest RSS feeds | §4.1 |
+| 07:00 | Cluster and score candidates | §4.2 |
+| 08:00 | Download full text for candidate articles; purge expired text | §4.3 |
+
+### 4.1 Ingest (daily, 06:00 UTC)
+- Seed `sources` with **25–40 public RSS feeds** across different kinds: national outlets, local outlets, international outlets, wire services, trade/industry press, and official sources (government and agency press releases). Put the list in `data/sources.json` so it's easy to edit. Mix outlets across the political spectrum and across countries, but do not store or display a political label.
+- Fetch all feeds in parallel (with a per-feed timeout) and upsert new items into `articles` (title, URL, snippet, date). The article URL is what the UI links to as proof. Do **not** fetch full article text at this stage.
+
+### 4.2 Cluster (daily, 07:00 UTC)
 Goal: find events covered by many different outlets.
 - Consider only articles from the last 72 hours.
 - Group articles about the **same event** (not just the same topic). Either:
@@ -98,13 +106,19 @@ Goal: find events covered by many different outlets.
 - Score each cluster: `score = distinct_source_count + 2 × distinct_kinds_count`, with a boost for stories that plausibly affect several distinct groups (ask the LLM for a 1–5 "stakeholder richness" rating).
 - Keep candidates with **≥ 5 distinct sources and ≥ 2 kinds**. Show them in the admin queue, ranked by score.
 
-### 4.3 Fetch article text (only for selected candidates)
-- For each article in a selected candidate, fetch the page and extract readable text with Readability.
+### 4.3 Fetch full article text (daily, 08:00 UTC)
+- For every article in a candidate created by today's clustering run (status `new`) whose text hasn't been fetched yet, download the page and extract readable text with Readability. No editor action needed: by the time an editor opens `/admin`, candidates already have their full text.
 - **Respect the web:** honor `robots.txt`, set a clear User-Agent identifying the project with a contact URL, rate-limit per domain, and **skip paywalled or blocked pages** (mark `fetch_status = blocked`). Never bypass paywalls or logins.
-- Store only a **short excerpt** (≤ ~4,000 chars) needed for grounding. Never republish article text; the UI shows short quotes and links back to the original.
+- Fetch only candidate articles, never every ingested article: that keeps the job within the time limit and keeps load on publishers low.
+- **Retention:** full text is stored privately for the agents, quote verification, and grounded chat. It is never shown on the site; the UI shows only short quotes and links back to the original. The same job purges full text older than **30 days**, except for articles cited by a published story (needed for its chat).
 
-### 4.4 Generate the story draft
-Call the LLM with the candidate's article excerpts, each tagged with an `article_id`. Require **zod-validated JSON**:
+### 4.4 Generate the story draft (two agents)
+Triggered when an editor clicks "generate draft" on a candidate. Two LLM calls run in sequence, each given the candidate's full article texts tagged with `article_id`:
+
+1. **Story writer agent** → `plain_title`, `why_it_matters`, `context`, `background`, and `story_citations`. Focus: plain language, ~8th-grade reading level, titles that state the fact.
+2. **Stakeholder analyst agent** → `stakeholders` (with their citations). Gets the same articles plus the story writer's output for context. Focus: 3–6 groups the sources actually mention, views kept separate from factual claims.
+
+Each agent's output is **zod-validated** on its own; together they form this draft JSON:
 
 ```json
 {
@@ -125,7 +139,7 @@ Call the LLM with the candidate's article excerpts, each tagged with an `article
 }
 ```
 
-Prompt requirements: 3–6 stakeholders; plain language; groups not individuals; every field cited; no left/right labels; don't invent groups the sources don't mention.
+Prompt requirements (split across the two agents as above): 3–6 stakeholders; plain language; groups not individuals; every field cited; no left/right labels; don't invent groups the sources don't mention.
 
 ### 4.5 Validate the draft (code, not just the prompt)
 - Every cited `quote` must appear in the referenced article's stored text (normalize whitespace and quotes; allow small fuzzy differences). Drop or flag any field whose citations fail.
@@ -153,11 +167,11 @@ Accessibility: large readable fonts, high contrast, works well on phones and on 
 System prompt built server-side from:
 - The stakeholder's name, wants, worries, why, and claims.
 - The story's context and background.
-- The relevant article excerpts, tagged with IDs.
+- The relevant article texts, tagged with IDs (trimmed to fit the context budget).
 
 Rules in the system prompt:
 - Speak as a representative of the **group** ("people in my position…"), never as a named person.
-- Answer **only** from the provided excerpts. If they don't cover the question, say so and suggest which other stakeholder might know.
+- Answer **only** from the provided articles. If they don't cover the question, say so and suggest which other stakeholder might know.
 - Cite the article ID for each factual statement; the UI turns IDs into outlet links.
 - Keep answers short (2–5 sentences) and plain.
 - Don't attack other stakeholders; you can describe disagreement factually.
@@ -188,12 +202,12 @@ Provide `.env.example`. Never commit secrets.
 - ✅ Done when: the example story renders on a Vercel URL, on mobile and desktop.
 
 **M2 — Ingest & cluster**
-- `data/sources.json` with 25–40 feeds; ingest cron; clustering; candidate scoring.
+- `data/sources.json` with 25–40 feeds; the three daily crons (§4.0): ingest, clustering and candidate scoring, polite full-text fetching with retention.
 - Admin candidate queue.
-- ✅ Done when: after one ingest run, admin shows ≥ 3 candidates each with ≥ 5 distinct sources.
+- ✅ Done when: after one daily run, admin shows ≥ 3 candidates each with ≥ 5 distinct sources, and full text is fetched for their articles (except blocked/paywalled ones).
 
 **M3 — Draft generation & validation**
-- Article text fetching (polite, paywall-respecting); LLM draft generation; zod validation; quote verification; readability check.
+- Two-agent LLM draft generation (§4.4); zod validation; quote verification; readability check.
 - Admin draft editor and publish flow.
 - ✅ Done when: one real story is generated, every field has a verified citation, and it can be edited and published.
 
