@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Roundtable</title>
+<style>
+:root{--bg:#faf8f4;--fg:#1c1b19;--muted:#6b675f;--card:#fff;--line:#e4dfd6;--accent:#2f5d50;--soft:#eef3f0}
+@media (prefers-color-scheme:dark){:root{--bg:#161614;--fg:#ece9e2;--muted:#a19c92;--card:#21201d;--line:#34322d;--accent:#7fb8a4;--soft:#1f2a26}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:18px/1.6 Georgia,serif}
+main{max-width:680px;margin:0 auto;padding:32px 16px 64px}
+.brand{font:600 13px system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+h1{font-size:30px;line-height:1.2;margin:8px 0 8px}
+.why{font:600 17px/1.5 system-ui,sans-serif;margin:0 0 16px}
+.note{font:13px system-ui,sans-serif;color:var(--muted);border-left:3px solid var(--line);padding-left:10px}
+h2{font:600 14px system-ui,sans-serif;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:32px 0 10px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.chip{font:16px system-ui,sans-serif;background:var(--card);border:1px solid var(--line);color:var(--fg);border-radius:999px;padding:10px 16px;cursor:pointer}
+.chip[aria-pressed=true]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin-top:14px;font-family:system-ui,sans-serif;font-size:16px}
+.card h3{margin:0 0 10px;font-size:19px}
+.lbl{font-weight:600;color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.04em;margin-top:12px}
+.card p{margin:2px 0 0}
+details{margin-top:12px}
+summary{cursor:pointer;color:var(--accent)}
+.chat{background:var(--soft);border-radius:12px;padding:16px;margin-top:14px;font-family:system-ui,sans-serif;font-size:15px}
+.chat .ai{font-size:12px;color:var(--muted);margin:0 0 10px}
+.starters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.starters button{font:14px system-ui,sans-serif;background:var(--card);border:1px solid var(--line);color:var(--fg);border-radius:8px;padding:6px 10px;cursor:pointer}
+.chat form{display:flex;gap:8px}
+.chat input{flex:1;font:15px system-ui,sans-serif;padding:10px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--fg)}
+.chat form button{font:15px system-ui,sans-serif;padding:10px 14px;border-radius:8px;border:0;background:var(--accent);color:#fff;cursor:pointer}
+.reply{margin-top:10px;color:var(--muted)}
+.flag{margin-top:32px;font:15px system-ui,sans-serif;background:none;border:1px dashed var(--line);color:var(--muted);border-radius:8px;padding:12px 14px;cursor:pointer;width:100%}
+</style>
+</head>
+<body>
+<main>
+<div class="brand">Roundtable</div>
+<h1 id="title"></h1>
+<p class="why" id="why"></p>
+<p class="note" id="illus"></p>
+<h2>What happened</h2><p id="context"></p>
+<h2>Background</h2><p id="background"></p>
+<h2>Who's at the table</h2>
+<div class="row" id="row"></div>
+<div id="cardslot"></div>
+<div id="chatslot"></div>
+<button class="flag" onclick="alert('Thanks. In the MVP this is saved for an editor to review.')">Missing a perspective? Tell us who.</button>
+</main>
+<script>
+const story = {"_note": "Illustrative example in the BUILD_PLAN.md §4.4 draft format. Not based on real sources, so all citation lists are empty. Replace with a real, cited story in M3.", "illustrative": true, "slug": "city-proposes-leaf-blower-ban", "plain_title": "City plans to ban gas leaf blowers within two years", "why_it_matters": "Neighbors want quieter, cleaner air, but small landscaping crews say the switch could cost them their livelihood.", "context": "A city council has proposed phasing out gas-powered leaf blowers over two years. Landscapers and residents would have to switch to electric models.", "background": "Gas leaf blowers use small engines that are loud and give off more pollution than many people expect. Some cities have already banned them. Others delayed their bans because of the cost to small businesses.", "stakeholders": [{"name": "Landscaping business owners", "icon": "🧑‍🌾", "wants": "Time and money to switch equipment without losing customers.", "worries": "Electric equipment is expensive, and batteries may not last a full workday.", "why": "Equipment is a big cost for small crews, and any downtime means lost income.", "claims": ["Batteries don't last a full workday."], "citations": []}, {"name": "Residents", "icon": "🏠", "wants": "Quieter mornings and cleaner air in their neighborhood.", "worries": "Noise and fumes every morning affect their health and peace.", "why": "Blowers often run near homes, schools, and people working from home.", "claims": ["Noise and fumes affect health."], "citations": []}, {"name": "Environmental groups", "icon": "🌱", "wants": "A faster switch to equipment with no emissions.", "worries": "Small engines are an overlooked source of air pollution.", "why": "They see small engines as an easy, local way to cut pollution.", "claims": ["Small engines pollute more than people assume."], "citations": []}, {"name": "City council", "icon": "🏛️", "wants": "A rule that passes and that people actually follow.", "worries": "Balancing public health against costs for small businesses.", "why": "They answer to both residents and local business owners.", "claims": [], "citations": []}], "story_citations": []};
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+$("title").textContent = story.plain_title;
+$("why").textContent = story.why_it_matters;
+$("context").textContent = story.context;
+$("background").textContent = story.background;
+$("illus").textContent = story.illustrative ? "Illustrative example. Not based on real sources yet." : "";
+function citeList(cites){
+  if(!cites.length) return "<p>No sources yet (illustrative example).</p>";
+  return "<ul>"+cites.map(c=>"<li>“"+esc(c.quote)+"” <em>(source "+esc(c.article_id)+")</em></li>").join("")+"</ul>";
+}
+function show(i){
+  document.querySelectorAll(".chip").forEach((b,j)=>b.setAttribute("aria-pressed", j===i));
+  const s = story.stakeholders[i];
+  const claims = s.claims.length ? "<ul>"+s.claims.map(c=>"<li>"+esc(c)+" <em>(claimed by this group)</em></li>").join("")+"</ul>" : "<p>None listed.</p>";
+  $("cardslot").innerHTML = '<div class="card"><h3>'+s.icon+" "+esc(s.name)+'</h3>'
+    +'<div class="lbl">Wants</div><p>'+esc(s.wants)+'</p>'
+    +'<div class="lbl">Worries</div><p>'+esc(s.worries)+'</p>'
+    +'<details><summary>Why they see it this way</summary><p>'+esc(s.why)+'</p>'
+    +'<div class="lbl">Factual claims</div>'+claims
+    +'<div class="lbl">Sources</div>'+citeList(s.citations)+'</details></div>';
+  const starters = ["What do you want most?","What worries you about this?","What would change your mind?"];
+  $("chatslot").innerHTML = '<div class="chat"><p class="ai">AI summary of what this group has said in the sources. Not an interview with a real person.</p>'
+    +'<div class="lbl" style="margin:0 0 8px">Ask '+esc(s.name.toLowerCase())+' a question</div>'
+    +'<div class="starters">'+starters.map(q=>'<button type="button">'+esc(q)+'</button>').join("")+'</div>'
+    +'<form><input placeholder="Type your question" aria-label="Your question"><button>Ask</button></form>'
+    +'<div class="reply" aria-live="polite"></div></div>';
+  const chat = $("chatslot");
+  const reply = () => chat.querySelector(".reply").textContent = "Preview only. In the MVP (milestone M4), this group answers using only this story's sources, with citations, and says so when the sources don't cover your question.";
+  chat.querySelectorAll(".starters button").forEach(b=>b.onclick=()=>{chat.querySelector("input").value=b.textContent;reply();});
+  chat.querySelector("form").onsubmit = e => {e.preventDefault(); reply();};
+}
+story.stakeholders.forEach((s,i)=>{
+  const b = document.createElement("button");
+  b.className="chip"; b.textContent = s.icon+" "+s.name; b.onclick=()=>show(i);
+  $("row").appendChild(b);
+});
+show(0);
+</script>
+</body>
+</html>

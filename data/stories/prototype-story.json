@@ -1,0 +1,48 @@
+{
+  "_note": "Illustrative example in the BUILD_PLAN.md §4.4 draft format. Not based on real sources, so all citation lists are empty. Replace with a real, cited story in M3.",
+  "illustrative": true,
+  "slug": "city-proposes-leaf-blower-ban",
+  "plain_title": "City plans to ban gas leaf blowers within two years",
+  "why_it_matters": "Neighbors want quieter, cleaner air, but small landscaping crews say the switch could cost them their livelihood.",
+  "context": "A city council has proposed phasing out gas-powered leaf blowers over two years. Landscapers and residents would have to switch to electric models.",
+  "background": "Gas leaf blowers use small engines that are loud and give off more pollution than many people expect. Some cities have already banned them. Others delayed their bans because of the cost to small businesses.",
+  "stakeholders": [
+    {
+      "name": "Landscaping business owners",
+      "icon": "🧑‍🌾",
+      "wants": "Time and money to switch equipment without losing customers.",
+      "worries": "Electric equipment is expensive, and batteries may not last a full workday.",
+      "why": "Equipment is a big cost for small crews, and any downtime means lost income.",
+      "claims": ["Batteries don't last a full workday."],
+      "citations": []
+    },
+    {
+      "name": "Residents",
+      "icon": "🏠",
+      "wants": "Quieter mornings and cleaner air in their neighborhood.",
+      "worries": "Noise and fumes every morning affect their health and peace.",
+      "why": "Blowers often run near homes, schools, and people working from home.",
+      "claims": ["Noise and fumes affect health."],
+      "citations": []
+    },
+    {
+      "name": "Environmental groups",
+      "icon": "🌱",
+      "wants": "A faster switch to equipment with no emissions.",
+      "worries": "Small engines are an overlooked source of air pollution.",
+      "why": "They see small engines as an easy, local way to cut pollution.",
+      "claims": ["Small engines pollute more than people assume."],
+      "citations": []
+    },
+    {
+      "name": "City council",
+      "icon": "🏛️",
+      "wants": "A rule that passes and that people actually follow.",
+      "worries": "Balancing public health against costs for small businesses.",
+      "why": "They answer to both residents and local business owners.",
+      "claims": [],
+      "citations": []
+    }
+  ],
+  "story_citations": []
+}

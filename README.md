@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Roundtable
 
-## Getting Started
+**Read the story in plain words, then ask the people in it.**
 
-First, run the development server:
+Roundtable finds news stories covered by many different outlets and turns each one into a plain-language story page. Instead of splitting a story into left / center / right, it shows each group involved in or affected by the story: what they want, what they worry about, and why. Readers can then ask each group questions in a chat that answers only from the story's sources, with citations.
+
+Built for **"The Dutiful Seeker"**: engaged news readers who want to hear multiple perspectives before forming their own opinion, but don't know where to find them.
+
+## Docs
+
+| File | What it is |
+|---|---|
+| [`docs/BUILD_PLAN.md`](docs/BUILD_PLAN.md) | **Source of truth for the build.** Product rules, stack, data model, pipeline, milestones M1–M5 |
+| [`docs/PLAN.md`](docs/PLAN.md) | Product view: problem, customer, validation plan, risks |
+| [`docs/prototype.html`](docs/prototype.html) | Original clickable design reference (open in a browser) |
+
+## Run locally
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local   # fill in values as milestones need them
+npm run dev                  # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+M1 needs no environment variables: the example story is read from `data/stories/`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Script | What it does |
+|---|---|
+| `npm run dev` | Dev server |
+| `npm run build` | Production build |
+| `npm test` | Unit tests (Vitest) |
+| `npm run lint` | ESLint |
+| `npm run db:generate` | Generate a SQL migration from `src/db/schema.ts` into `drizzle/` |
+| `npm run db:migrate` | Apply migrations to `DATABASE_URL` |
 
-## Learn More
+## Layout
 
-To learn more about Next.js, take a look at the following resources:
+```
+data/stories/          Story JSON in the BUILD_PLAN §4.4 format (M1: the illustrative example)
+drizzle/               SQL migrations
+src/db/schema.ts       Database schema (BUILD_PLAN §3)
+src/lib/story-schema.ts  Zod schemas for story drafts
+src/lib/stories.ts     Story loader (static files in M1, database from M3)
+src/app/               Pages: home feed, /story/[slug]
+src/components/        Stakeholder row, card, chat preview, feedback button
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Status
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**M1 — Skeleton & deploy.** The illustrative leaf-blower story renders at `/story/city-proposes-leaf-blower-ban`. The chat and "Missing a perspective?" are previews; they become real in M4 and M5.
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Course project — Software Engineering Management, CMU MSSM.
