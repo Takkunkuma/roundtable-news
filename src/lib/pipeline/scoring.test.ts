@@ -11,7 +11,7 @@ describe("scoreCluster", () => {
     );
     expect(r.distinctSourceCount).toBe(3);
     expect(r.distinctKindsCount).toBe(2);
-    expect(r.score).toBe(3 + 2 * 2 + 3);
+    expect(r.score).toBe(3 + 2 * 2 + 3 * 3);
     expect(r.qualifies).toBe(false);
   });
 

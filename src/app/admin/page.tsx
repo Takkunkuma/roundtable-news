@@ -132,7 +132,7 @@ async function Queue() {
       </p>
       <p className="mt-2 text-sm text-muted">
         Stories covered by ≥ 5 outlets of ≥ 2 kinds in the last {QUEUE_DAYS} days, highest score first. Score = outlets +
-        2 × kinds + affected-groups rating (1–5).
+        2 × kinds + 3 × affected-groups rating (1–5).
       </p>
       <ol className="mt-6 flex flex-col gap-4">
         {active.map((c) => {

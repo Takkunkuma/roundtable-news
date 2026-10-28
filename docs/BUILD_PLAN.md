@@ -104,7 +104,7 @@ Goal: find events covered by many different outlets.
 - Group articles about the **same event** (not just the same topic). Either:
   - **Option A:** embed titles + snippets, cluster by cosine similarity, then ask the LLM to confirm each cluster is one event; or
   - **Option B (simpler):** send batches of titles to the LLM and ask it to group them into events with JSON output.
-- Score each cluster: `score = distinct_source_count + 2 × distinct_kinds_count`, with a boost for stories that plausibly affect several distinct groups (ask the LLM for a 1–5 "stakeholder richness" rating).
+- Score each cluster: `score = distinct_source_count + 2 × distinct_kinds_count + 3 × stakeholder_richness`, where stakeholder richness is the LLM's 1–5 rating of how many distinct groups the story plausibly affects. The ×3 weight keeps multi-stakeholder stories above single-sided ones (such as crime cases) with similar coverage.
 - Keep candidates with **≥ 5 distinct sources and ≥ 2 kinds**. Show them in the admin queue, ranked by score.
 
 ### 4.3 Fetch full article text (daily, 08:00 UTC)

@@ -2,12 +2,10 @@
 
 import { useState } from "react";
 import { CitedText } from "@/components/CitedText";
-import type { StakeholderView } from "@/lib/stories";
+import { StakeholderChat } from "@/components/StakeholderChat";
+import type { SourceView, StakeholderView } from "@/lib/stories";
 
 type Stakeholder = StakeholderView;
-
-// Placeholder starters until §11 Q3 (generic vs. per-story) is decided.
-const STARTERS = ["What do you want most?", "What worries you about this?", "What would change your mind?"];
 
 const label = "font-sans text-[0.8rem] font-semibold uppercase tracking-[0.04em] text-muted";
 
@@ -60,66 +58,16 @@ function StakeholderCard({ s, illustrative }: { s: Stakeholder; illustrative: bo
   );
 }
 
-// M1 preview of the chat. The real grounded, streaming chat arrives in M4.
-function ChatPreview({ s }: { s: Stakeholder }) {
-  const [question, setQuestion] = useState("");
-  const [asked, setAsked] = useState(false);
-
-  return (
-    <section aria-label={`Ask ${s.name}`} className="mt-4 rounded-xl bg-soft p-4 font-sans text-base">
-      <p className="mb-3 text-xs text-muted">
-        AI summary of what this group has said in the sources. Not an interview with a real person.
-      </p>
-      <div className={`${label} mb-2`}>Ask {s.name.toLowerCase()} a question</div>
-      <div className="mb-3 flex flex-wrap gap-2">
-        {STARTERS.map((q) => (
-          <button
-            key={q}
-            type="button"
-            onClick={() => {
-              setQuestion(q);
-              setAsked(true);
-            }}
-            className="cursor-pointer rounded-lg border border-line bg-card px-3 py-1.5 text-sm"
-          >
-            {q}
-          </button>
-        ))}
-      </div>
-      <form
-        className="flex gap-2"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (question.trim()) setAsked(true);
-        }}
-      >
-        <input
-          value={question}
-          onChange={(e) => setQuestion(e.target.value)}
-          maxLength={500}
-          placeholder="Type your question"
-          aria-label="Your question"
-          className="min-w-0 flex-1 rounded-lg border border-line bg-card p-2.5 text-base text-fg"
-        />
-        <button type="submit" className="cursor-pointer rounded-lg bg-accent px-4 text-base text-accent-fg">
-          Ask
-        </button>
-      </form>
-      <p aria-live="polite" className="mt-3 text-muted">
-        {asked &&
-          "Preview only. Soon, this group will answer using only this story's sources, with citations, and will say so when the sources don't cover your question."}
-      </p>
-    </section>
-  );
-}
-
 export function StakeholderPanel({
   stakeholders,
   illustrative,
+  storySlug,
+  sources,
 }: {
   stakeholders: Stakeholder[];
   illustrative: boolean;
   storySlug: string;
+  sources: SourceView[];
 }) {
   const [selected, setSelected] = useState(0);
   const s = stakeholders[selected];
@@ -142,7 +90,7 @@ export function StakeholderPanel({
       {/* key resets card and chat state when switching stakeholders */}
       <div key={selected}>
         <StakeholderCard s={s} illustrative={illustrative} />
-        <ChatPreview s={s} />
+        <StakeholderChat s={s} storySlug={storySlug} sources={sources} illustrative={illustrative} />
       </div>
     </div>
   );

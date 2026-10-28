@@ -105,6 +105,25 @@ export async function listStoryCards(): Promise<StoryCard[]> {
   }));
 }
 
+// The articles a story cites, in a fixed order. The story page lists sources in this
+// order and the chat numbers them the same way, so "[2]" in a chat answer is the
+// second source on the page.
+export async function loadSourceArticles(storyId: number) {
+  const rows = await db()
+    .selectDistinct({
+      articleId: articles.id,
+      outlet: sources.name,
+      title: articles.title,
+      url: articles.url,
+      fullText: articles.fullText,
+    })
+    .from(citations)
+    .innerJoin(articles, eq(citations.articleId, articles.id))
+    .innerJoin(sources, eq(articles.sourceId, sources.id))
+    .where(eq(citations.storyId, storyId));
+  return rows.sort((a, b) => a.outlet.localeCompare(b.outlet) || a.articleId - b.articleId);
+}
+
 export async function getStory(slug: string): Promise<StoryView | undefined> {
   if (slug === example.slug) return exampleView();
   await connection();
@@ -115,7 +134,7 @@ export async function getStory(slug: string): Promise<StoryView | undefined> {
     .where(and(eq(stories.slug, slug), eq(stories.status, "published")));
   if (!story) return undefined;
 
-  const [shs, cites] = await Promise.all([
+  const [shs, cites, sourceArticles] = await Promise.all([
     db().select().from(stakeholders).where(eq(stakeholders.storyId, story.id)).orderBy(stakeholders.sortOrder),
     db()
       .select({
@@ -131,6 +150,7 @@ export async function getStory(slug: string): Promise<StoryView | undefined> {
       .innerJoin(articles, eq(citations.articleId, articles.id))
       .innerJoin(sources, eq(articles.sourceId, sources.id))
       .where(eq(citations.storyId, story.id)),
+    loadSourceArticles(story.id),
   ]);
   const claims = shs.length
     ? await db()
@@ -140,8 +160,6 @@ export async function getStory(slug: string): Promise<StoryView | undefined> {
     : [];
 
   const view = (c: (typeof cites)[number]): CitationView => ({ field: c.field, quote: c.quote, outlet: c.outlet, url: c.url });
-  const sourceMap = new Map<string, SourceView>();
-  for (const c of cites) sourceMap.set(c.url, { outlet: c.outlet, title: c.title, url: c.url });
 
   return {
     slug: story.slug,
@@ -167,6 +185,6 @@ export async function getStory(slug: string): Promise<StoryView | undefined> {
           citations: cites.filter((c) => c.targetType === "claim" && c.targetId === cl.id).map(view),
         })),
     })),
-    sources: [...sourceMap.values()].sort((a, b) => a.outlet.localeCompare(b.outlet)),
+    sources: sourceArticles.map((a) => ({ outlet: a.outlet, title: a.title, url: a.url })),
   };
 }

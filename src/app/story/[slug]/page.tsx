@@ -62,7 +62,12 @@ async function Story({ params }: { params: PageProps<"/story/[slug]">["params"] 
         <CitedText text={story.background} cites={cites("background")} />
 
         <SectionHeading>Who&apos;s at the table</SectionHeading>
-        <StakeholderPanel stakeholders={story.stakeholders} illustrative={story.illustrative} storySlug={story.slug} />
+        <StakeholderPanel
+          stakeholders={story.stakeholders}
+          illustrative={story.illustrative}
+          storySlug={story.slug}
+          sources={story.sources}
+        />
 
         <FeedbackButton />
 

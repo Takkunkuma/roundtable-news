@@ -83,7 +83,7 @@ Return 3–6 stakeholders. For each:
 
 Rules:
 - Only include groups the articles actually mention or clearly describe as affected. Don't invent groups. Prefer a set of groups with genuinely different interests.
-- Keep the set balanced. If a story has two or more sides, give each side comparable representation: don't list several groups from one side and a single group from the other. Merge groups whose views are nearly the same, and prefer groups affected in practical ways (workers, businesses, residents, patients, governments abroad) over a second group from the same camp.
+- Keep the set balanced. First work out the sides of the main dispute. Each side gets the same number of groups. Never add a group defined only by holding one side's opinion (such as "voters who want change") when that side already has a group; merge it into that side's group instead. Use any remaining slots for groups affected in practical ways (workers, businesses, residents, patients, governments abroad) rather than a second group from one camp.
 - Describe each group fairly, the way its own members would recognize. No left/right labels. No mocking or loaded words.
 - About an 8th-grade reading level.
 - citations: for EACH of wants, worries, and why, at least one citation; and for each claim, at least one citation. A citation is an article_id plus a short quote (5–25 words) copied exactly, word for word, from that article's text. Anything you can't support with an exact quote, leave out.

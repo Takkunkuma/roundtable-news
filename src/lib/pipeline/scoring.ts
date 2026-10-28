@@ -2,6 +2,7 @@
 
 export const MIN_SOURCES = 5;
 export const MIN_KINDS = 2;
+export const RICHNESS_WEIGHT = 3;
 
 export type ClusterArticle = { id: number; sourceId: number; kind: string };
 
@@ -13,9 +14,10 @@ export function scoreCluster(items: ClusterArticle[], stakeholderRichness: numbe
     distinctSourceCount,
     distinctKindsCount,
     stakeholderRichness: richness,
-    // score = distinct sources + 2 × distinct kinds, plus a 1–5 boost for stories
-    // that plausibly affect several distinct groups.
-    score: distinctSourceCount + 2 * distinctKindsCount + richness,
+    // score = distinct sources + 2 × distinct kinds + 3 × the 1–5 "affected groups"
+    // rating, so stories with several distinct stakeholders outrank single-sided ones
+    // (e.g. a crime case) with similar coverage.
+    score: distinctSourceCount + 2 * distinctKindsCount + RICHNESS_WEIGHT * richness,
     qualifies: distinctSourceCount >= MIN_SOURCES && distinctKindsCount >= MIN_KINDS,
   };
 }
