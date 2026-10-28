@@ -37,11 +37,12 @@ const GROUP_WORDS =
 const PERSON_TITLE = /^(mr|mrs|ms|dr|sen|senator|rep|gov|governor|president|prime minister|judge|justice|mayor|king|queen|prince|pope|ceo)\.?\s/i;
 
 // Heuristic: flags names that read like one real person ("Jane Smith", "Sen. Jane Smith",
-// "President X") rather than a group. Group names usually contain a group word.
+// "President X") rather than a group. A name with a group word ("Justice Department
+// leaders", "President Trump and his allies") is a group, even if it starts with a title.
 export function looksLikeNamedIndividual(name: string): boolean {
   const n = name.trim();
-  if (PERSON_TITLE.test(n)) return true;
   if (GROUP_WORDS.test(n)) return false;
+  if (PERSON_TITLE.test(n)) return true;
   const tokens = n.split(/\s+/);
   return tokens.length >= 2 && tokens.length <= 3 && tokens.every((t) => /^[A-Z][a-z'’.-]+$/.test(t));
 }

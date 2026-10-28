@@ -30,7 +30,7 @@ describe("quoteFound", () => {
 });
 
 describe("looksLikeNamedIndividual", () => {
-  it.each(["Jane Smith", "Sen. Jane Smith", "President Lopez", "Benjamin Netanyahu"])("flags %s", (name) => {
+  it.each(["Jane Smith", "Sen. Jane Smith", "President Lopez", "Benjamin Netanyahu", "Justice Smith"])("flags %s", (name) => {
     expect(looksLikeNamedIndividual(name)).toBe(true);
   });
 
@@ -42,6 +42,8 @@ describe("looksLikeNamedIndividual", () => {
     "City council",
     "Environmental groups",
     "Trump administration",
+    "Justice Department leaders and prosecutors",
+    "President Trump and his allies in Congress",
   ])("allows %s", (name) => {
     expect(looksLikeNamedIndividual(name)).toBe(false);
   });
