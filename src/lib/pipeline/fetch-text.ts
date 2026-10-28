@@ -111,6 +111,7 @@ export async function runFetchText() {
   }
 
   const counts = { ok: 0, blocked: 0, failed: 0, deferred: 0 };
+  const reasons: Record<string, number> = {}; // why articles were skipped, for the job log
   await Promise.all(
     [...byDomain.values()].map(async (queue) => {
       for (const [i, a] of queue.entries()) {
@@ -121,6 +122,10 @@ export async function runFetchText() {
         if (i > 0) await sleep(PER_DOMAIN_DELAY_MS);
         const result = await fetchArticle(a.url);
         counts[result.status]++;
+        if (result.reason) {
+          const key = `${new URL(a.url).hostname}: ${result.reason}`;
+          reasons[key] = (reasons[key] ?? 0) + 1;
+        }
         await db()
           .update(articles)
           .set({ fetchStatus: result.status, fullText: result.text ?? null, textFetchedAt: new Date() })
@@ -129,7 +134,13 @@ export async function runFetchText() {
     }),
   );
 
-  return { candidateArticles: ids.length, attempted: pending.length, ...counts, purged: await purgeExpiredText() };
+  return {
+    candidateArticles: ids.length,
+    attempted: pending.length,
+    ...counts,
+    reasons,
+    purged: await purgeExpiredText(),
+  };
 }
 
 // Full text is private and kept for 30 days, except for articles cited by a published
