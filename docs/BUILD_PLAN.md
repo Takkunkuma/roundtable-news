@@ -156,7 +156,7 @@ Prompt requirements (split across the two agents as above): 3–6 stakeholders; 
 | Stakeholder card | Wants / worries (always visible). "Why they see it this way," claims, and citations behind an expand. Each cited sentence shows a small source marker that reveals the outlet and short quote. |
 | Stakeholder chat | Opens from the card ("Ask the landscapers a question"). Labeled as an AI summary based on the sources. Shows suggested starter questions. Answers stream and include citations. |
 | "Missing a perspective?" | Button on every story; saves to `feedback`. |
-| `/admin` | Password-protected (simple env-var password + cookie is fine for the MVP). Candidate queue, "generate draft" button, draft editor for every field, citation checker results, approve/publish/archive. |
+| `/admin` | **Public, read-only** candidate queue (what the pipeline found, linked from the footer as "How stories are found"). Editor actions appear only after logging in (env-var password + cookie): reject/restore, "generate draft", draft editor for every field, citation checker results, approve/publish/archive. Every editor action re-checks the session on the server. |
 
 Accessibility: large readable fonts, high contrast, works well on phones and on a tablet, keyboard navigable, light and dark modes.
 
