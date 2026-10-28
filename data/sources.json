@@ -1,0 +1,282 @@
+[
+  {
+    "name": "NPR",
+    "feed_url": "https://feeds.npr.org/1001/rss.xml",
+    "homepage": "https://www.npr.org",
+    "kind": "national",
+    "country": "US"
+  },
+  {
+    "name": "The New York Times (U.S.)",
+    "feed_url": "https://rss.nytimes.com/services/xml/rss/nyt/US.xml",
+    "homepage": "https://www.nytimes.com",
+    "kind": "national",
+    "country": "US"
+  },
+  {
+    "name": "Fox News (U.S.)",
+    "feed_url": "https://moxie.foxnews.com/google-publisher/us.xml",
+    "homepage": "https://www.foxnews.com",
+    "kind": "national",
+    "country": "US"
+  },
+  {
+    "name": "CBS News (U.S.)",
+    "feed_url": "https://www.cbsnews.com/latest/rss/us",
+    "homepage": "https://www.cbsnews.com",
+    "kind": "national",
+    "country": "US"
+  },
+  {
+    "name": "ABC News (U.S.)",
+    "feed_url": "https://abcnews.go.com/abcnews/usheadlines",
+    "homepage": "https://abcnews.go.com",
+    "kind": "national",
+    "country": "US"
+  },
+  {
+    "name": "NBC News",
+    "feed_url": "https://feeds.nbcnews.com/nbcnews/public/news",
+    "homepage": "https://www.nbcnews.com",
+    "kind": "national",
+    "country": "US"
+  },
+  {
+    "name": "PBS NewsHour",
+    "feed_url": "https://www.pbs.org/newshour/feeds/rss/headlines",
+    "homepage": "https://www.pbs.org/newshour",
+    "kind": "national",
+    "country": "US"
+  },
+  {
+    "name": "The Wall Street Journal (U.S.)",
+    "feed_url": "https://feeds.content.dowjones.io/public/rss/RSSUSnews",
+    "homepage": "https://www.wsj.com",
+    "kind": "national",
+    "country": "US"
+  },
+  {
+    "name": "The Washington Times",
+    "feed_url": "https://www.washingtontimes.com/rss/headlines/news/",
+    "homepage": "https://www.washingtontimes.com",
+    "kind": "national",
+    "country": "US"
+  },
+  {
+    "name": "New York Post",
+    "feed_url": "https://nypost.com/news/feed/",
+    "homepage": "https://nypost.com",
+    "kind": "national",
+    "country": "US"
+  },
+  {
+    "name": "The Hill",
+    "feed_url": "https://thehill.com/news/feed/",
+    "homepage": "https://thehill.com",
+    "kind": "national",
+    "country": "US"
+  },
+  {
+    "name": "Politico",
+    "feed_url": "https://rss.politico.com/politics-news.xml",
+    "homepage": "https://www.politico.com",
+    "kind": "national",
+    "country": "US"
+  },
+  {
+    "name": "Washington Examiner",
+    "feed_url": "https://www.washingtonexaminer.com/feed",
+    "homepage": "https://www.washingtonexaminer.com",
+    "kind": "national",
+    "country": "US"
+  },
+  {
+    "name": "National Review",
+    "feed_url": "https://www.nationalreview.com/feed/",
+    "homepage": "https://www.nationalreview.com",
+    "kind": "national",
+    "country": "US"
+  },
+  {
+    "name": "Reason",
+    "feed_url": "https://reason.com/feed/",
+    "homepage": "https://reason.com",
+    "kind": "national",
+    "country": "US"
+  },
+  {
+    "name": "The Guardian (U.S.)",
+    "feed_url": "https://www.theguardian.com/us-news/rss",
+    "homepage": "https://www.theguardian.com/us",
+    "kind": "national",
+    "country": "US"
+  },
+  {
+    "name": "UPI",
+    "feed_url": "https://rss.upi.com/news/top_news.rss",
+    "homepage": "https://www.upi.com",
+    "kind": "wire",
+    "country": "US"
+  },
+  {
+    "name": "BBC News (World)",
+    "feed_url": "https://feeds.bbci.co.uk/news/world/rss.xml",
+    "homepage": "https://www.bbc.com/news",
+    "kind": "international",
+    "country": "GB"
+  },
+  {
+    "name": "Al Jazeera English",
+    "feed_url": "https://www.aljazeera.com/xml/rss/all.xml",
+    "homepage": "https://www.aljazeera.com",
+    "kind": "international",
+    "country": "QA"
+  },
+  {
+    "name": "DW (Deutsche Welle)",
+    "feed_url": "https://rss.dw.com/rdf/rss-en-all",
+    "homepage": "https://www.dw.com/en",
+    "kind": "international",
+    "country": "DE"
+  },
+  {
+    "name": "France 24",
+    "feed_url": "https://www.france24.com/en/rss",
+    "homepage": "https://www.france24.com/en",
+    "kind": "international",
+    "country": "FR"
+  },
+  {
+    "name": "ABC News (Australia)",
+    "feed_url": "https://www.abc.net.au/news/feed/2942460/rss.xml",
+    "homepage": "https://www.abc.net.au/news",
+    "kind": "international",
+    "country": "AU"
+  },
+  {
+    "name": "The Japan Times",
+    "feed_url": "https://www.japantimes.co.jp/feed/",
+    "homepage": "https://www.japantimes.co.jp",
+    "kind": "international",
+    "country": "JP"
+  },
+  {
+    "name": "The Times of India",
+    "feed_url": "https://timesofindia.indiatimes.com/rssfeedstopstories.cms",
+    "homepage": "https://timesofindia.indiatimes.com",
+    "kind": "international",
+    "country": "IN"
+  },
+  {
+    "name": "South China Morning Post",
+    "feed_url": "https://www.scmp.com/rss/91/feed",
+    "homepage": "https://www.scmp.com",
+    "kind": "international",
+    "country": "HK"
+  },
+  {
+    "name": "The Independent (World)",
+    "feed_url": "https://www.independent.co.uk/news/world/rss",
+    "homepage": "https://www.independent.co.uk",
+    "kind": "international",
+    "country": "GB"
+  },
+  {
+    "name": "Los Angeles Times (California)",
+    "feed_url": "https://www.latimes.com/california/rss2.0.xml",
+    "homepage": "https://www.latimes.com",
+    "kind": "local",
+    "country": "US"
+  },
+  {
+    "name": "CalMatters",
+    "feed_url": "https://calmatters.org/feed/",
+    "homepage": "https://calmatters.org",
+    "kind": "local",
+    "country": "US"
+  },
+  {
+    "name": "Chicago Sun-Times",
+    "feed_url": "https://chicago.suntimes.com/rss/index.xml",
+    "homepage": "https://chicago.suntimes.com",
+    "kind": "local",
+    "country": "US"
+  },
+  {
+    "name": "Utility Dive",
+    "feed_url": "https://www.utilitydive.com/feeds/news/",
+    "homepage": "https://www.utilitydive.com",
+    "kind": "trade",
+    "country": "US"
+  },
+  {
+    "name": "Healthcare Dive",
+    "feed_url": "https://www.healthcaredive.com/feeds/news/",
+    "homepage": "https://www.healthcaredive.com",
+    "kind": "trade",
+    "country": "US"
+  },
+  {
+    "name": "Supply Chain Dive",
+    "feed_url": "https://www.supplychaindive.com/feeds/news/",
+    "homepage": "https://www.supplychaindive.com",
+    "kind": "trade",
+    "country": "US"
+  },
+  {
+    "name": "STAT",
+    "feed_url": "https://www.statnews.com/feed/",
+    "homepage": "https://www.statnews.com",
+    "kind": "trade",
+    "country": "US"
+  },
+  {
+    "name": "Ars Technica",
+    "feed_url": "https://feeds.arstechnica.com/arstechnica/index",
+    "homepage": "https://arstechnica.com",
+    "kind": "trade",
+    "country": "US"
+  },
+  {
+    "name": "The White House",
+    "feed_url": "https://www.whitehouse.gov/news/feed/",
+    "homepage": "https://www.whitehouse.gov",
+    "kind": "official",
+    "country": "US"
+  },
+  {
+    "name": "U.S. Department of Justice",
+    "feed_url": "https://www.justice.gov/news/rss?type=press_release&m=1",
+    "homepage": "https://www.justice.gov",
+    "kind": "official",
+    "country": "US"
+  },
+  {
+    "name": "UN News",
+    "feed_url": "https://news.un.org/feed/subscribe/en/news/all/rss.xml",
+    "homepage": "https://news.un.org",
+    "kind": "official",
+    "country": "INT"
+  },
+  {
+    "name": "ACLU",
+    "feed_url": "https://www.aclu.org/news/feed",
+    "homepage": "https://www.aclu.org",
+    "kind": "advocacy",
+    "country": "US"
+  },
+  {
+    "name": "American Enterprise Institute",
+    "feed_url": "https://www.aei.org/feed/",
+    "homepage": "https://www.aei.org",
+    "kind": "advocacy",
+    "country": "US"
+  },
+  {
+    "name": "Electronic Frontier Foundation",
+    "feed_url": "https://www.eff.org/rss/updates.xml",
+    "homepage": "https://www.eff.org",
+    "kind": "advocacy",
+    "country": "US"
+  }
+]
