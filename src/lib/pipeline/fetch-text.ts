@@ -2,7 +2,7 @@
 // and purge stored text past its retention period.
 import { Readability } from "@mozilla/readability";
 import { and, eq, gte, inArray, isNotNull, lt, notInArray } from "drizzle-orm";
-import { JSDOM, VirtualConsole } from "jsdom";
+import { parseHTML } from "linkedom";
 import robotsParser from "robots-parser";
 import { db } from "@/db";
 import { articles, citations, stories, storyCandidates } from "@/db/schema";
@@ -50,16 +50,12 @@ function robotsFor(url: URL) {
   return robotsCache.get(origin)!;
 }
 
-export function extractText(html: string, url: string): string | null {
-  // Pages often carry CSS jsdom can't parse; keep that noise out of the logs.
-  const dom = new JSDOM(html, { url, virtualConsole: new VirtualConsole() });
-  try {
-    const parsed = new Readability(dom.window.document).parse();
-    const text = parsed?.textContent?.replace(/[ \t]+/g, " ").replace(/\s*\n\s*/g, "\n").trim();
-    return text || null;
-  } finally {
-    dom.window.close();
-  }
+// linkedom rather than jsdom: jsdom's dependencies don't load on Vercel's runtime.
+export function extractText(html: string): string | null {
+  const { document } = parseHTML(html);
+  const parsed = new Readability(document as unknown as Document).parse();
+  const text = parsed?.textContent?.replace(/[ \t]+/g, " ").replace(/\s*\n\s*/g, "\n").trim();
+  return text || null;
 }
 
 async function fetchArticle(rawUrl: string): Promise<Result> {
@@ -78,7 +74,7 @@ async function fetchArticle(rawUrl: string): Promise<Result> {
     if (!res.ok) return { status: "failed", reason: `HTTP ${res.status}` };
     if (!(res.headers.get("content-type") ?? "").includes("html")) return { status: "failed", reason: "not HTML" };
 
-    const text = extractText(await res.text(), res.url || rawUrl);
+    const text = extractText(await res.text());
     if (!text || text.length < MIN_TEXT_CHARS) return { status: "blocked", reason: "too little text (likely paywall)" };
     return { status: "ok", text: text.slice(0, MAX_TEXT_CHARS) };
   } catch (e) {
