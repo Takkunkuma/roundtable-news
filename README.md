@@ -22,7 +22,7 @@ cp .env.example .env.local   # fill in values as milestones need them
 npm run dev                  # http://localhost:3000
 ```
 
-M1 needs no environment variables: the example story is read from `data/stories/`.
+The story pages need no environment variables. The pipeline and `/admin` need `DATABASE_URL`, `ANTHROPIC_API_KEY`, `CRON_SECRET` and `ADMIN_PASSWORD` (see `.env.example`).
 
 ## Scripts
 
@@ -34,21 +34,36 @@ M1 needs no environment variables: the example story is read from `data/stories/
 | `npm run lint` | ESLint |
 | `npm run db:generate` | Generate a SQL migration from `src/db/schema.ts` into `drizzle/` |
 | `npm run db:migrate` | Apply migrations to `DATABASE_URL` |
+| `npm run feeds:check` | Check every feed in `data/sources.json` parses and is fresh |
+
+## Daily pipeline
+
+Three Vercel Cron Jobs (`vercel.json`), one hour apart, each a route that requires `Authorization: Bearer $CRON_SECRET`:
+
+| UTC | Route | What it does |
+|---|---|---|
+| 06:00 | `/api/cron/ingest` | Reads every feed in `data/sources.json`, saves new articles |
+| 07:00 | `/api/cron/cluster` | Groups the last 72 h of articles into events with Claude; keeps ≥ 5 outlets / ≥ 2 kinds |
+| 08:00 | `/api/cron/fetch-text` | Downloads full text for candidate articles (robots.txt, per-site rate limit, skips paywalls); purges text after 30 days |
+
+Run one now: `vercel crons run /api/cron/ingest`, or locally `curl -H "Authorization: Bearer $CRON_SECRET" localhost:3000/api/cron/ingest`. Candidates appear at `/admin`.
 
 ## Layout
 
 ```
+data/sources.json      RSS feeds the pipeline reads (edit freely; run feeds:check)
 data/stories/          Story JSON in the BUILD_PLAN §4.4 format (M1: the illustrative example)
 drizzle/               SQL migrations
 src/db/schema.ts       Database schema (BUILD_PLAN §3)
 src/lib/story-schema.ts  Zod schemas for story drafts
 src/lib/stories.ts     Story loader (static files in M1, database from M3)
-src/app/               Pages: home feed, /story/[slug]
+src/lib/pipeline/      Daily jobs: ingest, cluster (+ scoring), fetch-text
+src/app/               Pages: home feed, /story/[slug], /admin; cron routes under api/cron
 src/components/        Stakeholder row, card, chat preview, feedback button
 ```
 
 ## Status
 
-**M1 — Skeleton & deploy.** The illustrative leaf-blower story renders at `/story/city-proposes-leaf-blower-ban`. The chat and "Missing a perspective?" are previews; they become real in M4 and M5.
+**M2 — Ingest & cluster** (in progress). M1 is live: the illustrative leaf-blower story renders at `/story/city-proposes-leaf-blower-ban`. The chat and "Missing a perspective?" are previews; they become real in M4 and M5.
 
 Course project — Software Engineering Management, CMU MSSM.
