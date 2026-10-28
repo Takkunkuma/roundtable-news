@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PageViewTracker } from "@/components/PageViewTracker";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             </Link>
           </header>
           {children}
+          <PageViewTracker />
         </div>
       </body>
     </html>

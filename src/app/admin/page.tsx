@@ -1,10 +1,10 @@
-import { desc, eq, gte, inArray } from "drizzle-orm";
+import { count, desc, eq, gte, inArray } from "drizzle-orm";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { db } from "@/db";
-import { articles, sources, stories, storyCandidates } from "@/db/schema";
+import { articles, events, feedback, sources, stories, storyCandidates } from "@/db/schema";
 import { isAdmin } from "@/lib/admin-auth";
 import { logout, setCandidateStatus, setStoryStatus } from "./actions";
 
@@ -59,12 +59,23 @@ async function loadQueue() {
     .select({ id: stories.id, slug: stories.slug, title: stories.plainTitle, status: stories.status, candidateId: stories.candidateId })
     .from(stories)
     .orderBy(desc(stories.createdAt));
-  return { candidates, byId: new Map(rows.map((r) => [r.id, r])), storyRows };
+  const since = new Date(Date.now() - QUEUE_DAYS * 86400_000);
+  const [usage, suggestions] = await Promise.all([
+    db().select({ type: events.type, n: count() }).from(events).where(gte(events.createdAt, since)).groupBy(events.type),
+    db()
+      .select({ text: feedback.text, createdAt: feedback.createdAt, story: stories.plainTitle, slug: stories.slug })
+      .from(feedback)
+      .innerJoin(stories, eq(feedback.storyId, stories.id))
+      .orderBy(desc(feedback.createdAt))
+      .limit(50),
+  ]);
+  return { candidates, byId: new Map(rows.map((r) => [r.id, r])), storyRows, usage, suggestions };
 }
 
 async function Queue() {
   const editor = await isAdmin();
-  const { candidates, byId, storyRows } = await loadQueue();
+  const { candidates, byId, storyRows, usage, suggestions } = await loadQueue();
+  const usageCount = (t: string) => usage.find((u) => u.type === t)?.n ?? 0;
   const storyByCandidate = new Map(storyRows.map((s) => [s.candidateId, s]));
   const visibleStories = storyRows.filter((s) => editor || s.status === "published");
 
@@ -102,6 +113,36 @@ async function Queue() {
   return (
     <>
       {editorBar}
+      <section className="mt-6">
+        <h2 className="text-xl font-semibold">Reader activity (last {QUEUE_DAYS} days)</h2>
+        <p className="mt-1 text-base">
+          {usageCount("page_view")} page views · {usageCount("stakeholder_tap")} stakeholder taps ·{" "}
+          {usageCount("chat_question")} chat questions
+        </p>
+        <p className="text-sm text-muted">Anonymous counts only; no personal data is collected.</p>
+      </section>
+      {editor && (
+        <section className="mt-6">
+          <h2 className="text-xl font-semibold">&ldquo;Missing a perspective?&rdquo; suggestions</h2>
+          {suggestions.length === 0 ? (
+            <p className="mt-1 text-sm text-muted">None yet.</p>
+          ) : (
+            <ul className="mt-2 flex flex-col gap-2 text-base">
+              {suggestions.map((f, i) => (
+                <li key={i} className="rounded-lg border border-line p-3">
+                  <p>{f.text}</p>
+                  <p className="mt-1 text-sm text-muted">
+                    on{" "}
+                    <Link href={`/story/${f.slug}`} className="underline">
+                      {f.story}
+                    </Link>
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
       {visibleStories.length > 0 && (
         <section className="mt-6">
           <h2 className="text-xl font-semibold">Generated stories</h2>

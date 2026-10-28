@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { chatLogs, stakeholderClaims, stakeholders, stories } from "@/db/schema";
+import { chatLogs, events, stakeholderClaims, stakeholders, stories } from "@/db/schema";
 import { buildSystemPrompt, chatRequestSchema } from "@/lib/chat";
 import { anthropic, fallbackOptions, llmModel } from "@/lib/llm";
 import { rateLimit } from "@/lib/rate-limit";
@@ -29,6 +29,11 @@ export async function POST(request: Request) {
   const groups = await db().select().from(stakeholders).where(eq(stakeholders.storyId, story.id));
   const stakeholder = groups.find((g) => g.id === stakeholderId);
   if (!stakeholder) return json({ error: "Group not found in this story" }, 404);
+
+  await db()
+    .insert(events)
+    .values({ type: "chat_question", storySlug, stakeholderId })
+    .catch((e) => console.error("event insert failed", e));
 
   const [claims, articles] = await Promise.all([
     db().select().from(stakeholderClaims).where(eq(stakeholderClaims.stakeholderId, stakeholder.id)),

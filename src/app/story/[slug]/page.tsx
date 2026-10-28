@@ -69,7 +69,7 @@ async function Story({ params }: { params: PageProps<"/story/[slug]">["params"] 
           sources={story.sources}
         />
 
-        <FeedbackButton />
+        <FeedbackButton storySlug={story.slug} illustrative={story.illustrative} />
 
         <SectionHeading>Sources</SectionHeading>
         {story.sources.length === 0 ? (

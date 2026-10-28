@@ -4,6 +4,7 @@ import { useState } from "react";
 import { CitedText } from "@/components/CitedText";
 import { StakeholderChat } from "@/components/StakeholderChat";
 import type { SourceView, StakeholderView } from "@/lib/stories";
+import { track } from "@/lib/track";
 
 type Stakeholder = StakeholderView;
 
@@ -80,7 +81,10 @@ export function StakeholderPanel({
             key={st.name}
             type="button"
             aria-pressed={i === selected}
-            onClick={() => setSelected(i)}
+            onClick={() => {
+              setSelected(i);
+              if (st.id && !illustrative) track({ type: "stakeholder_tap", storySlug, stakeholderId: st.id });
+            }}
             className="cursor-pointer rounded-full border border-line bg-card px-4 py-2.5 font-sans text-base aria-pressed:border-accent aria-pressed:ring-1 aria-pressed:ring-accent"
           >
             <span aria-hidden="true">{st.icon}</span> {st.name}

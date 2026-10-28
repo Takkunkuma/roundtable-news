@@ -148,3 +148,19 @@ export const feedback = pgTable("feedback", {
   text: text().notNull(),
   createdAt: createdAt(),
 });
+
+export const eventType = pgEnum("event_type", ["page_view", "stakeholder_tap", "chat_question"]);
+
+// Basic usage analytics (BUILD_PLAN §8 M5). No personal data: no IP, user agent, or ids.
+export const events = pgTable(
+  "events",
+  {
+    id: id(),
+    type: eventType().notNull(),
+    path: text(),
+    storySlug: text(),
+    stakeholderId: integer(),
+    createdAt: createdAt(),
+  },
+  (t) => [index("events_created_at_idx").on(t.createdAt)],
+);
