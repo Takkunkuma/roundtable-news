@@ -64,6 +64,6 @@ src/components/        Stakeholder row, card, chat preview, feedback button
 
 ## Status
 
-**M2 — Ingest & cluster** (in progress). M1 is live: the illustrative leaf-blower story renders at `/story/city-proposes-leaf-blower-ban`. The chat and "Missing a perspective?" are previews; they become real in M4 and M5.
+**M2 — Ingest & cluster** done: the daily pipeline finds multi-source stories, listed publicly at `/admin`. M1: the illustrative leaf-blower story renders at `/story/city-proposes-leaf-blower-ban`. The chat and "Missing a perspective?" are previews; they become real in M4 and M5.
 
 Course project — Software Engineering Management, CMU MSSM.
