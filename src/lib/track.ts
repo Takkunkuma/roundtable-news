@@ -1,7 +1,7 @@
 // Client-side analytics helper. Fire-and-forget; never blocks the page.
 type Event =
   | { type: "page_view"; path: string; storySlug?: string }
-  | { type: "stakeholder_tap"; storySlug: string; stakeholderId: number };
+  | { type: "stakeholder_tap" | "chat_question"; storySlug: string; stakeholderId: number };
 
 export function track(event: Event) {
   try {

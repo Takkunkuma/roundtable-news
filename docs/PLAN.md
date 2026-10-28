@@ -25,7 +25,7 @@ A web app that finds stories covered by many outlets and turns each into a plain
 1. **Plain-language surface** — an obvious title that states the fact, one line on why it matters, short context, and background. Instagram-card simplicity, ~8th-grade reading level.
 2. **Stakeholder row** — icons for each group involved in or affected by the story.
 3. **Stakeholder card** — what that group wants and worries about; expand for why they see it this way, the factual claims they make, and the cited sources.
-4. **Stakeholder chat** — ask a group a question. Answers come only from the story's sources, with citations, and say plainly when the sources don't cover something.
+4. **Stakeholder chat** — ask a group a question. In the proof of concept, answers are simulated from the group's sourced card (no AI cost), with the same source links, and say plainly when the sources don't cover something. A live AI version was built and can be restored.
 
 Behind the page, a daily pipeline ingests public news feeds, groups articles about the same event, keeps stories covered by ≥ 5 outlets of ≥ 2 kinds, and downloads those articles' full text. Two AI agents then write the story page (one writes the plain-language story, one analyzes stakeholders), and the top stories are published automatically each day with a clear AI-generated label.
 
@@ -33,7 +33,7 @@ Behind the page, a daily pipeline ingests public news feeds, groups articles abo
 (Full list and enforcement details in `BUILD_PLAN.md` §1.)
 - Stakeholders are groups, never real named individuals; chat never impersonates a real person.
 - Everything is sourced; no source, no claim.
-- Chat is grounded in the story's stored source articles only.
+- Chat answers only from what the story's sources say about the group (simulated from the card in the PoC).
 - A group's views are kept separate from its factual claims.
 - No left/center/right framing, and no debate between stakeholders.
 - The chat is clearly labeled as an AI summary of what the group has said.
@@ -49,7 +49,7 @@ Built in five milestones (details and "done when" checks in `BUILD_PLAN.md` §8)
 | M1 | Next.js app deployed on Vercel, rendering the example story |
 | M2 | Feed ingestion and multi-source story clustering, admin candidate queue |
 | M3 | AI story pages with verified citations, published automatically each day (labeled), unpublish in admin |
-| M4 | Grounded stakeholder chat with citations |
+| M4 | Stakeholder chat with source links (simulated answers in the PoC; live AI version in git history) |
 | M5 | Home feed, feedback button, polish; three real stories live |
 
 **Out of scope for the MVP:** user accounts, personalization, notifications, stakeholder debates, multiple languages, native apps, payments, YouTube integration, an in-app draft editor.

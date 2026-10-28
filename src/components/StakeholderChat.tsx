@@ -1,43 +1,48 @@
 "use client";
 
-import { Fragment, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { type AnswerPart, simulatedAnswer } from "@/lib/simulated-chat";
 import type { SourceView, StakeholderView } from "@/lib/stories";
+import { track } from "@/lib/track";
 
-// Placeholder starters until §11 Q3 (generic vs. per-story) is decided.
-const STARTERS = ["What do you want most?", "What worries you about this?", "Why do you see it this way?"];
+const STARTERS = ["What do you want most?", "What worries you about this?", "Why do you see it this way?", "What facts do you point to?"];
 const MAX_QUESTION_CHARS = 500;
-const MAX_QUESTIONS = 10;
+const TYPING_MS = 18; // per word, so answers appear to be typed
 
-type Message = { role: "user" | "assistant"; content: string };
+type Message = { role: "user"; text: string } | { role: "group"; parts: AnswerPart[]; shownWords: number };
 
 const label = "font-sans text-[0.8rem] font-semibold uppercase tracking-[0.04em] text-muted";
+const wordCount = (parts: AnswerPart[]) => parts.reduce((n, p) => n + p.text.split(" ").length, 0);
 
-// Turns "[2]" markers in an answer into links to the story's second source.
-function AnswerText({ text, sources }: { text: string; sources: SourceView[] }) {
-  const parts = text.split(/(\[\d+(?:,\s*\d+)*\])/g);
+function Answer({ parts, shownWords }: { parts: AnswerPart[]; shownWords: number }) {
+  // Word offset where each part starts, so each part knows how much of it to show.
+  const starts = parts.map((_, i) => parts.slice(0, i).reduce((n, p) => n + p.text.split(" ").length, 0));
   return (
     <>
-      {parts.map((part, i) => {
-        const m = part.match(/^\[(\d+(?:,\s*\d+)*)\]$/);
-        if (!m) return <Fragment key={i}>{part}</Fragment>;
+      {parts.map((p, i) => {
+        const words = p.text.split(" ");
+        const budget = shownWords - starts[i];
+        if (budget <= 0) return null;
+        const done = budget >= words.length;
         return (
-          <Fragment key={i}>
-            {m[1].split(/,\s*/).map((n) => {
-              const src = sources[Number(n) - 1];
-              return src ? (
-                <a
-                  key={n}
-                  href={src.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  title={`${src.outlet}: ${src.title}`}
-                  className="ml-0.5 align-super text-xs text-accent underline"
-                >
-                  {src.outlet}
-                </a>
-              ) : null;
-            })}
-          </Fragment>
+          <span key={i} className="block [&+&]:mt-1.5">
+            {words.slice(0, budget).join(" ")}
+            {done &&
+              p.cites.map((c, j) =>
+                c.url ? (
+                  <a
+                    key={j}
+                    href={c.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    title={`“${c.quote}”`}
+                    className="ml-1 align-super text-xs text-accent underline"
+                  >
+                    {c.outlet}
+                  </a>
+                ) : null,
+              )}
+          </span>
         );
       })}
     </>
@@ -48,71 +53,45 @@ export function StakeholderChat({
   s,
   storySlug,
   sources,
+  others,
   illustrative,
 }: {
   s: StakeholderView;
   storySlug: string;
   sources: SourceView[];
+  others: string[];
   illustrative: boolean;
 }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [question, setQuestion] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
-  const asked = messages.filter((m) => m.role === "user").length;
-  const atLimit = asked >= MAX_QUESTIONS;
+  const typing = messages.some((m) => m.role === "group" && m.shownWords < wordCount(m.parts));
 
-  if (illustrative || !s.id) {
-    return (
-      <section className="mt-4 rounded-xl bg-soft p-4 font-sans text-base text-muted">
-        Chat is available on real stories with sources. This illustrative example has none.
-      </section>
-    );
-  }
+  // Reveal the latest answer a few words at a time.
+  useEffect(() => {
+    if (!typing) return;
+    const t = setTimeout(() => {
+      setMessages((ms) => ms.map((m) => (m.role === "group" ? { ...m, shownWords: m.shownWords + 2 } : m)));
+      endRef.current?.scrollIntoView({ block: "nearest" });
+    }, TYPING_MS * 2);
+    return () => clearTimeout(t);
+  }, [messages, typing]);
 
-  async function ask(text: string) {
+  function ask(text: string) {
     const q = text.trim();
-    if (!q || busy || atLimit) return;
-    const history: Message[] = [...messages, { role: "user", content: q }];
-    setMessages([...history, { role: "assistant", content: "" }]);
+    if (!q || typing) return;
+    const outlets = [...new Set(sources.map((src) => src.outlet))];
+    const parts = simulatedAnswer(s, q, others, outlets);
+    setMessages((ms) => [...ms, { role: "user", text: q }, { role: "group", parts, shownWords: 0 }]);
     setQuestion("");
-    setError(null);
-    setBusy(true);
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ storySlug, stakeholderId: s.id, messages: history }),
-      });
-      if (!res.ok || !res.body) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.error ?? "Something went wrong. Please try again.");
-      }
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let answer = "";
-      for (;;) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        answer += decoder.decode(value, { stream: true });
-        setMessages([...history, { role: "assistant", content: answer }]);
-        endRef.current?.scrollIntoView({ block: "nearest" });
-      }
-    } catch (e) {
-      setMessages(messages); // drop the unanswered question so it can be retried
-      setQuestion(q);
-      setError(e instanceof Error ? e.message : "Something went wrong. Please try again.");
-    } finally {
-      setBusy(false);
-    }
+    if (s.id && !illustrative) track({ type: "chat_question", storySlug, stakeholderId: s.id });
   }
 
   return (
     <section aria-label={`Ask ${s.name}`} className="mt-4 rounded-xl bg-soft p-4 font-sans text-base">
       <p className="mb-3 text-xs text-muted">
-        AI summary of what this group has said in this story&apos;s news sources. Not an interview with a real person.
-        Answers can be wrong; check the linked sources.
+        Prototype chat: answers are simulated from this group&apos;s card above (what the news sources say about them),
+        not live AI and not an interview with a real person.
       </p>
       <div className={`${label} mb-2`}>Ask {s.name.toLowerCase()} a question</div>
 
@@ -121,68 +100,56 @@ export function StakeholderChat({
           {messages.map((m, i) =>
             m.role === "user" ? (
               <p key={i} className="self-end rounded-lg bg-card px-3 py-2 font-semibold">
-                {m.content}
+                {m.text}
               </p>
             ) : (
-              <p key={i} className="leading-relaxed">
+              <div key={i} className="leading-relaxed">
                 <span aria-hidden="true">{s.icon} </span>
-                {m.content ? <AnswerText text={m.content} sources={sources} /> : <span className="text-muted">Thinking…</span>}
-              </p>
+                <Answer parts={m.parts} shownWords={m.shownWords} />
+              </div>
             ),
           )}
           <div ref={endRef} />
         </div>
       )}
 
-      {messages.length === 0 && (
-        <div className="mb-3 flex flex-wrap gap-2">
-          {STARTERS.map((q) => (
-            <button
-              key={q}
-              type="button"
-              onClick={() => ask(q)}
-              className="cursor-pointer rounded-lg border border-line bg-card px-3 py-1.5 text-sm"
-            >
-              {q}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {error && (
-        <p role="alert" className="mb-2 text-sm text-red-700 dark:text-red-400">
-          {error}
-        </p>
-      )}
-
-      {atLimit ? (
-        <p className="text-sm text-muted">You&apos;ve reached the {MAX_QUESTIONS}-question limit for this chat. Try another group!</p>
-      ) : (
-        <form
-          className="flex gap-2"
-          onSubmit={(e) => {
-            e.preventDefault();
-            ask(question);
-          }}
-        >
-          <input
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            maxLength={MAX_QUESTION_CHARS}
-            placeholder={busy ? "Answering…" : "Type your question"}
-            aria-label="Your question"
-            disabled={busy}
-            className="min-w-0 flex-1 rounded-lg border border-line bg-card p-2.5 text-base text-fg"
-          />
+      <div className="mb-3 flex flex-wrap gap-2">
+        {STARTERS.map((q) => (
           <button
-            type="submit"
-            disabled={busy || !question.trim()}
-            className="cursor-pointer rounded-lg bg-accent px-4 text-base text-accent-fg disabled:opacity-60"
+            key={q}
+            type="button"
+            onClick={() => ask(q)}
+            disabled={typing}
+            className="cursor-pointer rounded-lg border border-line bg-card px-3 py-1.5 text-sm disabled:opacity-60"
           >
-            Ask
+            {q}
           </button>
-        </form>
-      )}
+        ))}
+      </div>
+
+      <form
+        className="flex gap-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          ask(question);
+        }}
+      >
+        <input
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          maxLength={MAX_QUESTION_CHARS}
+          placeholder="Type any question"
+          aria-label="Your question"
+          className="min-w-0 flex-1 rounded-lg border border-line bg-card p-2.5 text-base text-fg"
+        />
+        <button
+          type="submit"
+          disabled={typing || !question.trim()}
+          className="cursor-pointer rounded-lg bg-accent px-4 text-base text-accent-fg disabled:opacity-60"
+        >
+          Ask
+        </button>
+      </form>
     </section>
   );
 }

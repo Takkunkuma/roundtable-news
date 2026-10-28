@@ -21,11 +21,11 @@ These matter more than any feature. Encode them in prompts, validation code, and
 
 1. **Stakeholders are groups, never real named individuals.** "Landscaping business owners," not "Mayor Jane Smith." Chat characters must never impersonate a real person.
 2. **Everything is sourced.** Every stakeholder field and every chat answer cites one or more source articles. No source → the claim doesn't appear.
-3. **Grounded chat.** A stakeholder can only answer from that story's stored source articles. If the sources don't cover a question, the character says so plainly and does not guess.
+3. **Grounded chat.** A stakeholder can only answer from that story's sources. If the sources don't cover a question, the character says so plainly and does not guess. *(Proof of concept: answers are simulated from the group's card, which is itself verified against the sources; see §6.)*
 4. **Views vs. facts.** Keep a group's interests and feelings separate from factual claims. Factual claims are listed separately and labeled as "claimed by this group."
 5. **No left/center/right framing.** Perspectives are organized by who is affected, not by political camp. Politicians or parties may appear as one stakeholder among several.
 6. **No debate mode.** Stakeholders do not argue with each other in the MVP.
-7. **Clearly labeled as AI.** The chat is labeled as an AI summary of what this group has said in the sources, not an interview.
+7. **Clearly labeled.** The chat says what it is: in the proof of concept, simulated answers built from the group's card, not live AI and not an interview.
 8. **Plain language.** Titles state the fact (no idioms, teasers, or clickbait). Aim for roughly 8th-grade reading level. Explain any unavoidable term the first time it appears.
 9. **Clearly labeled automatic publishing (proof of concept).** To show a variety of real stories, the top candidates are published automatically each day. Every generated page says it is AI-generated from N news sources and not reviewed by an editor. Code-level checks (§4.5) are the safety net, and an editor can unpublish any story from `/admin`. *(Changed from "human review before publishing" for the MVP; revisit before any wider launch.)*
 
@@ -162,7 +162,11 @@ Prompt requirements (split across the two agents as above): 3–6 stakeholders; 
 
 Accessibility: large readable fonts, high contrast, works well on phones and on a tablet, keyboard navigable, light and dark modes.
 
-## 6. Stakeholder chat (API)
+## 6. Stakeholder chat
+
+> **Proof of concept (current):** to keep costs fixed, the chat makes **no AI calls**. Readers can type any question; the browser matches it to the group's wants, worries, why, or claims (or other groups / sources) and replies in the group's voice with the card's source links. Unmatched questions get "the sources don't answer that directly" plus a short summary. Logic: `src/lib/simulated-chat.ts`. The live, grounded Claude chat below was built in M4 and removed for cost; it is in git history (commit `0b0f62d`, `src/app/api/chat/route.ts`) if you want to bring it back.
+
+### Live chat design (removed for the PoC)
 
 `POST /api/chat` with `{ storySlug, stakeholderId, messages }`. Stream the response.
 
@@ -214,7 +218,7 @@ Provide `.env.example`. Never commit secrets.
 - ✅ Done when: real stories appear on the home feed, every field has a verified citation, and an editor can unpublish one.
 
 **M4 — Stakeholder chat**
-- Streaming grounded chat with citations, starter questions, AI label, limits.
+- Streaming grounded chat with citations, starter questions, AI label, limits. *(Built, then replaced with simulated answers for the PoC; see §6.)*
 - ✅ Done when: asking an out-of-scope question gets a clear "the sources don't cover that" answer, and in-scope answers show working source links.
 
 **M5 — Polish & feedback**

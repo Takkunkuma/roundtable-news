@@ -65,6 +65,6 @@ src/components/        Stakeholder row, card, chat preview, feedback button
 
 ## Status
 
-**MVP complete (M1–M5).** The live site shows real, AI-generated story pages (published automatically each day at 09:00 UTC, clearly labeled, unpublishable from `/admin`), each with stakeholder cards, a grounded chat per group, and a "Missing a perspective?" form. `/admin` shows the candidate queue and anonymous reader activity (page views, stakeholder taps, chat questions); suggestions and editor actions need the admin password.
+**MVP complete (M1–M5).** The live site shows real, AI-generated story pages (published automatically each day at 09:00 UTC, clearly labeled, unpublishable from `/admin`), each with stakeholder cards, a chat per group (simulated answers from the group's sourced card — no AI cost per question), and a "Missing a perspective?" form. `/admin` shows the candidate queue and anonymous reader activity (page views, stakeholder taps, chat questions); suggestions and editor actions need the admin password.
 
 Course project — Software Engineering Management, CMU MSSM.

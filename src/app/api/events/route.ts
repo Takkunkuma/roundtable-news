@@ -5,7 +5,7 @@ import { rateLimit } from "@/lib/rate-limit";
 
 // Anonymous usage events: no IP, user agent, cookies, or user ids are stored.
 const eventSchema = z.object({
-  type: z.enum(["page_view", "stakeholder_tap"]),
+  type: z.enum(["page_view", "stakeholder_tap", "chat_question"]),
   path: z.string().max(300).optional(),
   storySlug: z.string().max(200).optional(),
   stakeholderId: z.number().int().positive().optional(),

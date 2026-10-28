@@ -94,7 +94,13 @@ export function StakeholderPanel({
       {/* key resets card and chat state when switching stakeholders */}
       <div key={selected}>
         <StakeholderCard s={s} illustrative={illustrative} />
-        <StakeholderChat s={s} storySlug={storySlug} sources={sources} illustrative={illustrative} />
+        <StakeholderChat
+          s={s}
+          storySlug={storySlug}
+          sources={sources}
+          others={stakeholders.filter((_, i) => i !== selected).map((g) => g.name)}
+          illustrative={illustrative}
+        />
       </div>
     </div>
   );
