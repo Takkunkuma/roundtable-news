@@ -38,13 +38,14 @@ The story pages need no environment variables. The pipeline and `/admin` need `D
 
 ## Daily pipeline
 
-Three Vercel Cron Jobs (`vercel.json`), one hour apart, each a route that requires `Authorization: Bearer $CRON_SECRET`:
+Four Vercel Cron Jobs (`vercel.json`), one hour apart, each a route that requires `Authorization: Bearer $CRON_SECRET`:
 
 | UTC | Route | What it does |
 |---|---|---|
 | 06:00 | `/api/cron/ingest` | Reads every feed in `data/sources.json`, saves new articles |
 | 07:00 | `/api/cron/cluster` | Groups the last 72 h of articles into events with Claude; keeps ≥ 5 outlets / ≥ 2 kinds |
 | 08:00 | `/api/cron/fetch-text` | Downloads full text for candidate articles (robots.txt, per-site rate limit, skips paywalls); purges text after 30 days |
+| 09:00 | `/api/cron/generate` | Turns the top 5 new candidates into story pages (story writer + stakeholder analyst agents), verifies every quote, publishes |
 
 Run one now: `vercel crons run /api/cron/ingest`, or locally `curl -H "Authorization: Bearer $CRON_SECRET" localhost:3000/api/cron/ingest`. Candidates appear at `/admin`.
 
@@ -64,6 +65,6 @@ src/components/        Stakeholder row, card, chat preview, feedback button
 
 ## Status
 
-**M2 — Ingest & cluster** done: the daily pipeline finds multi-source stories, listed publicly at `/admin`. M1: the illustrative leaf-blower story renders at `/story/city-proposes-leaf-blower-ban`. The chat and "Missing a perspective?" are previews; they become real in M4 and M5.
+**M4 — Stakeholder chat** done. The live site shows real, AI-generated story pages (published automatically each day at 09:00 UTC, clearly labeled, unpublishable from `/admin`), each with stakeholder cards and a grounded chat per group. M1–M3 done. Next: M5 (feedback button, polish, analytics).
 
 Course project — Software Engineering Management, CMU MSSM.
