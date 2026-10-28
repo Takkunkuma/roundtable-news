@@ -4,9 +4,9 @@ import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { db } from "@/db";
-import { articles, sources, storyCandidates } from "@/db/schema";
+import { articles, sources, stories, storyCandidates } from "@/db/schema";
 import { isAdmin } from "@/lib/admin-auth";
-import { logout, setCandidateStatus } from "./actions";
+import { logout, setCandidateStatus, setStoryStatus } from "./actions";
 
 // Public, read-only view of what the pipeline found. Actions (reject, and from M3 on
 // generate / edit / publish) appear only for the logged-in editor.
@@ -55,12 +55,18 @@ async function loadQueue() {
         .innerJoin(sources, eq(articles.sourceId, sources.id))
         .where(inArray(articles.id, ids))
     : [];
-  return { candidates, byId: new Map(rows.map((r) => [r.id, r])) };
+  const storyRows = await db()
+    .select({ id: stories.id, slug: stories.slug, title: stories.plainTitle, status: stories.status, candidateId: stories.candidateId })
+    .from(stories)
+    .orderBy(desc(stories.createdAt));
+  return { candidates, byId: new Map(rows.map((r) => [r.id, r])), storyRows };
 }
 
 async function Queue() {
   const editor = await isAdmin();
-  const { candidates, byId } = await loadQueue();
+  const { candidates, byId, storyRows } = await loadQueue();
+  const storyByCandidate = new Map(storyRows.map((s) => [s.candidateId, s]));
+  const visibleStories = storyRows.filter((s) => editor || s.status === "published");
 
   const active = candidates.filter((c) => c.status !== "rejected");
   const rejected = candidates.filter((c) => c.status === "rejected");
@@ -96,7 +102,31 @@ async function Queue() {
   return (
     <>
       {editorBar}
-      <p className="mt-4 text-base">
+      {visibleStories.length > 0 && (
+        <section className="mt-6">
+          <h2 className="text-xl font-semibold">Generated stories</h2>
+          <ul className="mt-2 flex flex-col gap-2 text-base">
+            {visibleStories.map((s) => (
+              <li key={s.id} className="flex items-center justify-between gap-3">
+                <span>
+                  <Link href={`/story/${s.slug}`} className="underline">
+                    {s.title}
+                  </Link>
+                  {s.status !== "published" && <span className="text-sm text-muted"> ({s.status})</span>}
+                </span>
+                {editor && (
+                  <form action={setStoryStatus.bind(null, s.id, s.status === "published" ? "archived" : "published")}>
+                    <button type="submit" className="cursor-pointer rounded-lg border border-line px-3 py-1 text-sm">
+                      {s.status === "published" ? "Unpublish" : "Republish"}
+                    </button>
+                  </form>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+      <p className="mt-6 text-base">
         News stories the pipeline found that many different outlets covered. An editor picks from this list to write
         Roundtable story pages.
       </p>
@@ -113,6 +143,11 @@ async function Queue() {
               <div className="flex items-start justify-between gap-3">
                 <h2 className="text-lg font-semibold leading-snug">{c.label}</h2>
                 <span className="shrink-0 rounded-full bg-soft px-3 py-1 text-sm font-semibold">{c.score}</span>
+              </div>
+              <div>
+                {storyByCandidate.has(c.id) && (
+                  <span className="text-sm font-semibold text-accent">Story generated</span>
+                )}
               </div>
               <p className="mt-1 text-sm text-muted">
                 {c.distinctSourceCount} outlets · {c.distinctKindsCount} kinds · affected groups {c.stakeholderRichness}/5 ·

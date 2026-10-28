@@ -27,7 +27,7 @@ These matter more than any feature. Encode them in prompts, validation code, and
 6. **No debate mode.** Stakeholders do not argue with each other in the MVP.
 7. **Clearly labeled as AI.** The chat is labeled as an AI summary of what this group has said in the sources, not an interview.
 8. **Plain language.** Titles state the fact (no idioms, teasers, or clickbait). Aim for roughly 8th-grade reading level. Explain any unavoidable term the first time it appears.
-9. **Human review before publishing.** Generated stories are drafts until an editor approves them.
+9. **Clearly labeled automatic publishing (proof of concept).** To show a variety of real stories, the top candidates are published automatically each day. Every generated page says it is AI-generated from N news sources and not reviewed by an editor. Code-level checks (§4.5) are the safety net, and an editor can unpublish any story from `/admin`. *(Changed from "human review before publishing" for the MVP; revisit before any wider launch.)*
 
 ## 2. Tech stack
 
@@ -92,6 +92,7 @@ The pipeline runs once a day as three Vercel Cron Jobs, one hour apart (Hobby pl
 | 06:00 | Ingest RSS feeds | §4.1 |
 | 07:00 | Cluster and score candidates | §4.2 |
 | 08:00 | Download full text for candidate articles; purge expired text | §4.3 |
+| 09:00 | Generate and publish story pages for the top 5 new candidates | §4.4–4.5 |
 
 ### 4.1 Ingest (daily, 06:00 UTC)
 - Seed `sources` with **25–40 public RSS feeds** across different kinds: national outlets, local outlets, international outlets, wire services, trade/industry press, and official sources (government and agency press releases). Put the list in `data/sources.json` so it's easy to edit. Mix outlets across the political spectrum and across countries, but do not store or display a political label.
@@ -113,7 +114,7 @@ Goal: find events covered by many different outlets.
 - **Retention:** full text is stored privately for the agents, quote verification, and grounded chat. It is never shown on the site; the UI shows only short quotes and links back to the original. The same job purges full text older than **30 days**, except for articles cited by a published story (needed for its chat).
 
 ### 4.4 Generate the story draft (two agents)
-Triggered when an editor clicks "generate draft" on a candidate. Two LLM calls run in sequence, each given the candidate's full article texts tagged with `article_id`:
+Runs daily at 09:00 UTC for the **top 5 candidates** (by score) that don't have a story yet and have full text for at least 3 articles. Two LLM calls run in sequence, each given the candidate's full article texts tagged with `article_id`:
 
 1. **Story writer agent** → `plain_title`, `why_it_matters`, `context`, `background`, and `story_citations`. Focus: plain language, ~8th-grade reading level, titles that state the fact.
 2. **Stakeholder analyst agent** → `stakeholders` (with their citations). Gets the same articles plus the story writer's output for context. Focus: 3–6 groups the sources actually mention, views kept separate from factual claims.
@@ -145,7 +146,8 @@ Prompt requirements (split across the two agents as above): 3–6 stakeholders; 
 - Every cited `quote` must appear in the referenced article's stored text (normalize whitespace and quotes; allow small fuzzy differences). Drop or flag any field whose citations fail.
 - Reject names that look like real individuals (heuristic + an LLM check).
 - Run a readability score on title/context and flag drafts that are too complex.
-- Save as `status = draft`.
+- Drop any citation whose quote fails verification; drop claims left without a citation; drop stakeholders whose wants, worries, or why lack a verified citation. If the story fields lack citations or fewer than 3 stakeholders remain, skip the candidate.
+- Save as `status = published` with the AI-generated label (rule 9).
 
 ## 5. App pages
 
@@ -156,7 +158,7 @@ Prompt requirements (split across the two agents as above): 3–6 stakeholders; 
 | Stakeholder card | Wants / worries (always visible). "Why they see it this way," claims, and citations behind an expand. Each cited sentence shows a small source marker that reveals the outlet and short quote. |
 | Stakeholder chat | Opens from the card ("Ask the landscapers a question"). Labeled as an AI summary based on the sources. Shows suggested starter questions. Answers stream and include citations. |
 | "Missing a perspective?" | Button on every story; saves to `feedback`. |
-| `/admin` | **Public, read-only** candidate queue (what the pipeline found, linked from the footer as "How stories are found"). Editor actions appear only after logging in (env-var password + cookie): reject/restore, "generate draft", draft editor for every field, citation checker results, approve/publish/archive. Every editor action re-checks the session on the server. |
+| `/admin` | **Public, read-only** back-office view of the candidate queue (not linked from reader pages). Editor actions appear only after logging in (env-var password + cookie): reject/restore candidates, unpublish/restore stories. Every editor action re-checks the session on the server. |
 
 Accessibility: large readable fonts, high contrast, works well on phones and on a tablet, keyboard navigable, light and dark modes.
 
@@ -206,10 +208,10 @@ Provide `.env.example`. Never commit secrets.
 - Admin candidate queue.
 - ✅ Done when: after one daily run, admin shows ≥ 3 candidates each with ≥ 5 distinct sources, and full text is fetched for their articles (except blocked/paywalled ones).
 
-**M3 — Draft generation & validation**
+**M3 — Story generation, validation & auto-publish**
 - Two-agent LLM draft generation (§4.4); zod validation; quote verification; readability check.
-- Admin draft editor and publish flow.
-- ✅ Done when: one real story is generated, every field has a verified citation, and it can be edited and published.
+- Daily generate cron; published stories read from the database; AI-generated label; unpublish in `/admin`.
+- ✅ Done when: real stories appear on the home feed, every field has a verified citation, and an editor can unpublish one.
 
 **M4 — Stakeholder chat**
 - Streaming grounded chat with citations, starter questions, AI label, limits.
@@ -227,7 +229,7 @@ Provide `.env.example`. Never commit secrets.
 
 ## 10. Out of scope for the MVP
 
-User accounts, personalization, notifications, debate between stakeholders, multiple languages, native mobile apps, payments, YouTube integration, and fully automatic publishing.
+User accounts, personalization, notifications, debate between stakeholders, multiple languages, native mobile apps, payments, YouTube integration, and an in-app draft editor (stories are generated and published automatically; see rule 9).
 
 ## 11. Open questions for Tats (ask before deciding these yourself)
 

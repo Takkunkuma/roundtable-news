@@ -1,45 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import type { Stakeholder } from "@/lib/story-schema";
+import { CitedText } from "@/components/CitedText";
+import type { StakeholderView } from "@/lib/stories";
 
-type Citation = Stakeholder["citations"][number];
+type Stakeholder = StakeholderView;
 
 // Placeholder starters until §11 Q3 (generic vs. per-story) is decided.
 const STARTERS = ["What do you want most?", "What worries you about this?", "What would change your mind?"];
 
 const label = "font-sans text-[0.8rem] font-semibold uppercase tracking-[0.04em] text-muted";
 
-function CitedText({ text, cites }: { text: string; cites: Citation[] }) {
-  const [open, setOpen] = useState<number | null>(null);
-  return (
-    <>
-      <p className="mt-0.5">
-        {text}
-        {cites.map((_, i) => (
-          <button
-            key={i}
-            type="button"
-            aria-expanded={open === i}
-            aria-label={`Show source ${i + 1}`}
-            onClick={() => setOpen(open === i ? null : i)}
-            className="ml-1 cursor-pointer align-super text-xs text-accent underline"
-          >
-            {i + 1}
-          </button>
-        ))}
-      </p>
-      {open !== null && cites[open] && (
-        <p className="mt-1 rounded-md bg-soft px-3 py-2 text-sm">
-          &ldquo;{cites[open].quote}&rdquo; <span className="text-muted">(source {cites[open].article_id})</span>
-        </p>
-      )}
-    </>
-  );
-}
-
 function StakeholderCard({ s, illustrative }: { s: Stakeholder; illustrative: boolean }) {
   const citesFor = (field: string) => s.citations.filter((c) => c.field === field);
+  const allSources = [...new Set([...s.citations, ...s.claims.flatMap((c) => c.citations)].map((c) => c.outlet).filter(Boolean))];
 
   return (
     <div className="mt-4 rounded-xl border border-line bg-card p-5 font-sans text-base">
@@ -48,15 +22,15 @@ function StakeholderCard({ s, illustrative }: { s: Stakeholder; illustrative: bo
       </h3>
 
       <div className={`${label} mt-3`}>Wants</div>
-      <CitedText text={s.wants} cites={citesFor("wants")} />
+      <CitedText text={s.wants} cites={citesFor("wants")} className="mt-0.5" />
 
       <div className={`${label} mt-3`}>Worries</div>
-      <CitedText text={s.worries} cites={citesFor("worries")} />
+      <CitedText text={s.worries} cites={citesFor("worries")} className="mt-0.5" />
 
       <details className="mt-4">
         <summary className="cursor-pointer text-accent">Why they see it this way</summary>
         <div className="mt-2">
-          <CitedText text={s.why} cites={citesFor("why")} />
+          <CitedText text={s.why} cites={citesFor("why")} className="mt-0.5" />
 
           <div className={`${label} mt-4`}>Factual claims</div>
           {s.claims.length === 0 ? (
@@ -65,25 +39,21 @@ function StakeholderCard({ s, illustrative }: { s: Stakeholder; illustrative: bo
             <ul className="mt-1 list-disc pl-5">
               {s.claims.map((claim, i) => (
                 <li key={i}>
-                  <CitedText text={claim} cites={citesFor(`claim:${i}`)} />
-                  <span className="text-sm text-muted">Claimed by this group.</span>
+                  <CitedText as="span" text={claim.text} cites={claim.citations} />{" "}
+                  <span className="text-sm text-muted">(claimed by this group)</span>
                 </li>
               ))}
             </ul>
           )}
 
-          <div className={`${label} mt-4`}>Sources</div>
-          {s.citations.length === 0 ? (
-            <p className="mt-0.5">{illustrative ? "No sources yet (illustrative example)." : "No sources listed."}</p>
-          ) : (
-            <ul className="mt-1 list-disc pl-5 text-sm">
-              {s.citations.map((c, i) => (
-                <li key={i}>
-                  &ldquo;{c.quote}&rdquo; <span className="text-muted">(source {c.article_id})</span>
-                </li>
-              ))}
-            </ul>
-          )}
+          <div className={`${label} mt-4`}>Based on</div>
+          <p className="mt-0.5 text-sm">
+            {allSources.length > 0
+              ? allSources.join(", ")
+              : illustrative
+                ? "No sources yet (illustrative example)."
+                : "No sources listed."}
+          </p>
         </div>
       </details>
     </div>
@@ -149,6 +119,7 @@ export function StakeholderPanel({
 }: {
   stakeholders: Stakeholder[];
   illustrative: boolean;
+  storySlug: string;
 }) {
   const [selected, setSelected] = useState(0);
   const s = stakeholders[selected];

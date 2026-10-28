@@ -21,11 +21,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             </Link>
           </header>
           {children}
-          <footer className="mt-16 border-t border-line pt-4 font-sans text-sm text-muted">
-            <Link href="/admin" className="underline">
-              How stories are found
-            </Link>
-          </footer>
         </div>
       </body>
     </html>

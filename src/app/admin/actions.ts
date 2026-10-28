@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
-import { storyCandidates } from "@/db/schema";
+import { stories, storyCandidates } from "@/db/schema";
 import { isAdmin } from "@/lib/admin-auth";
 import { ADMIN_COOKIE, adminToken, safeEqual } from "@/lib/secrets";
 
@@ -37,4 +37,12 @@ export async function setCandidateStatus(id: number, status: "new" | "rejected")
   if (!(await isAdmin())) redirect("/admin/login");
   await db().update(storyCandidates).set({ status }).where(eq(storyCandidates.id, id));
   revalidatePath("/admin");
+}
+
+// Unpublish (archive) or republish a generated story.
+export async function setStoryStatus(id: number, status: "published" | "archived") {
+  if (!(await isAdmin())) redirect("/admin/login");
+  await db().update(stories).set({ status }).where(eq(stories.id, id));
+  revalidatePath("/admin");
+  revalidatePath("/");
 }

@@ -27,7 +27,7 @@ A web app that finds stories covered by many outlets and turns each into a plain
 3. **Stakeholder card** — what that group wants and worries about; expand for why they see it this way, the factual claims they make, and the cited sources.
 4. **Stakeholder chat** — ask a group a question. Answers come only from the story's sources, with citations, and say plainly when the sources don't cover something.
 
-Behind the page, a daily pipeline ingests public news feeds, groups articles about the same event, keeps stories covered by ≥ 5 outlets of ≥ 2 kinds, and downloads those articles' full text. Two AI agents then draft the story page (one writes the plain-language story, one analyzes stakeholders) for an editor to review and publish.
+Behind the page, a daily pipeline ingests public news feeds, groups articles about the same event, keeps stories covered by ≥ 5 outlets of ≥ 2 kinds, and downloads those articles' full text. Two AI agents then write the story page (one writes the plain-language story, one analyzes stakeholders), and the top stories are published automatically each day with a clear AI-generated label.
 
 ## 4. Product rules
 (Full list and enforcement details in `BUILD_PLAN.md` §1.)
@@ -38,7 +38,7 @@ Behind the page, a daily pipeline ingests public news feeds, groups articles abo
 - No left/center/right framing, and no debate between stakeholders.
 - The chat is clearly labeled as an AI summary of what the group has said.
 - Plain language throughout.
-- Human review before anything is published.
+- Every page is clearly labeled as AI-generated and not editor-reviewed; an editor can unpublish any story. (For the MVP, top stories publish automatically.)
 - Readers can flag a missing perspective.
 
 ## 5. MVP scope
@@ -48,11 +48,11 @@ Built in five milestones (details and "done when" checks in `BUILD_PLAN.md` §8)
 |---|---|
 | M1 | Next.js app deployed on Vercel, rendering the example story |
 | M2 | Feed ingestion and multi-source story clustering, admin candidate queue |
-| M3 | AI story drafts with verified citations, admin editor and publish flow |
+| M3 | AI story pages with verified citations, published automatically each day (labeled), unpublish in admin |
 | M4 | Grounded stakeholder chat with citations |
 | M5 | Home feed, feedback button, polish; three real stories live |
 
-**Out of scope for the MVP:** user accounts, personalization, notifications, stakeholder debates, multiple languages, native apps, payments, YouTube integration, fully automatic publishing.
+**Out of scope for the MVP:** user accounts, personalization, notifications, stakeholder debates, multiple languages, native apps, payments, YouTube integration, an in-app draft editor.
 
 ## 6. Validation plan
 - Interview 5 more Dutiful Seekers: "Last time you wanted another side of a story, what did you do?"
