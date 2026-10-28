@@ -16,7 +16,7 @@ export async function runIngest() {
         if (items.length === 0) return { source: source.name, fetched: 0, inserted: 0 };
         const inserted = await db()
           .insert(articles)
-          .values(items.map((i) => ({ ...i, sourceId: source.id })))
+          .values(items.map((i) => ({ ...i, sourceId: source.id, fetchedAt: new Date() })))
           .onConflictDoNothing({ target: articles.url })
           .returning({ id: articles.id });
         return { source: source.name, fetched: items.length, inserted: inserted.length };
