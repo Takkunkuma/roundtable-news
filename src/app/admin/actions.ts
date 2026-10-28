@@ -32,6 +32,7 @@ export async function logout() {
   redirect("/admin/login");
 }
 
+// Every editor action re-checks the session: the queue page is public.
 export async function setCandidateStatus(id: number, status: "new" | "rejected") {
   if (!(await isAdmin())) redirect("/admin/login");
   await db().update(storyCandidates).set({ status }).where(eq(storyCandidates.id, id));

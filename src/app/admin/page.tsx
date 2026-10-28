@@ -1,27 +1,23 @@
 import { desc, eq, gte, inArray } from "drizzle-orm";
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
+import Link from "next/link";
+import { connection } from "next/server";
 import { Suspense } from "react";
 import { db } from "@/db";
 import { articles, sources, storyCandidates } from "@/db/schema";
 import { isAdmin } from "@/lib/admin-auth";
 import { logout, setCandidateStatus } from "./actions";
 
-export const metadata: Metadata = { title: "Candidate queue", robots: { index: false } };
+// Public, read-only view of what the pipeline found. Actions (reject, and from M3 on
+// generate / edit / publish) appear only for the logged-in editor.
+export const metadata: Metadata = { title: "Story candidates", robots: { index: false } };
 
 const QUEUE_DAYS = 7;
 
 export default function AdminPage() {
   return (
     <main className="font-sans">
-      <div className="flex items-baseline justify-between gap-4">
-        <h1 className="font-serif text-3xl">Candidate queue</h1>
-        <form action={logout}>
-          <button type="submit" className="cursor-pointer text-sm text-muted underline">
-            Log out
-          </button>
-        </form>
-      </div>
+      <h1 className="font-serif text-3xl">Story candidates</h1>
       <Suspense fallback={<p className="mt-6 text-muted">Loading candidates…</p>}>
         <Queue />
       </Suspense>
@@ -37,6 +33,7 @@ const fetchLabel: Record<string, string> = {
 };
 
 async function loadQueue() {
+  await connection(); // the queue is always read fresh at request time
   const candidates = await db()
     .select()
     .from(storyCandidates)
@@ -62,22 +59,47 @@ async function loadQueue() {
 }
 
 async function Queue() {
-  if (!(await isAdmin())) redirect("/admin/login");
+  const editor = await isAdmin();
   const { candidates, byId } = await loadQueue();
 
   const active = candidates.filter((c) => c.status !== "rejected");
   const rejected = candidates.filter((c) => c.status === "rejected");
 
+  const editorBar = (
+    <div className="mt-2 text-sm text-muted">
+      {editor ? (
+        <form action={logout} className="inline">
+          Logged in as editor ·{" "}
+          <button type="submit" className="cursor-pointer underline">
+            Log out
+          </button>
+        </form>
+      ) : (
+        <Link href="/admin/login" className="underline">
+          Editor login
+        </Link>
+      )}
+    </div>
+  );
+
   if (candidates.length === 0) {
     return (
-      <p className="mt-6 text-muted">
-        No candidates yet. They appear after the daily jobs run (ingest 06:00, cluster 07:00, full text 08:00 UTC).
-      </p>
+      <>
+        {editorBar}
+        <p className="mt-6 text-muted">
+          No candidates yet. They appear after the daily jobs run (ingest 06:00, cluster 07:00, full text 08:00 UTC).
+        </p>
+      </>
     );
   }
 
   return (
     <>
+      {editorBar}
+      <p className="mt-4 text-base">
+        News stories the pipeline found that many different outlets covered. An editor picks from this list to write
+        Roundtable story pages.
+      </p>
       <p className="mt-2 text-sm text-muted">
         Stories covered by ≥ 5 outlets of ≥ 2 kinds in the last {QUEUE_DAYS} days, highest score first. Score = outlets +
         2 × kinds + affected-groups rating (1–5).
@@ -112,16 +134,18 @@ async function Queue() {
                   ))}
                 </ul>
               </details>
-              <form action={setCandidateStatus.bind(null, c.id, "rejected")} className="mt-3">
-                <button type="submit" className="cursor-pointer rounded-lg border border-line px-3 py-1.5 text-sm">
-                  Reject
-                </button>
-              </form>
+              {editor && (
+                <form action={setCandidateStatus.bind(null, c.id, "rejected")} className="mt-3">
+                  <button type="submit" className="cursor-pointer rounded-lg border border-line px-3 py-1.5 text-sm">
+                    Reject
+                  </button>
+                </form>
+              )}
             </li>
           );
         })}
       </ol>
-      {rejected.length > 0 && (
+      {editor && rejected.length > 0 && (
         <details className="mt-8">
           <summary className="cursor-pointer text-sm text-muted">Rejected ({rejected.length})</summary>
           <ul className="mt-2 flex flex-col gap-2 text-sm">
